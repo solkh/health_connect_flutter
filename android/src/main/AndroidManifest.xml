@@ -1,3 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:tools="http://schemas.android.com/tools"
   package="com.solgr.health_connect_flutter">
+
+  <uses-sdk tools:overrideLibrary="androidx.health.connect.client"/>
+
 </manifest>
