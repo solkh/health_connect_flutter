@@ -9,6 +9,9 @@ class MockHealthConnectFlutterPlatform with MockPlatformInterfaceMixin implement
   Future<String?> getPlatformVersionName() => Future.value('42');
   @override
   Future<int?> getPlatformVersionCode() => Future.value(42);
+
+  @override
+  Future<bool?> requestAuthorization() => Future.value(false);
 }
 
 void main() {

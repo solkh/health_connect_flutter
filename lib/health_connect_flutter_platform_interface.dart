@@ -25,4 +25,6 @@ abstract class HealthConnectFlutterPlatform extends PlatformInterface {
 
   Future<String?> getPlatformVersionName();
   Future<int?> getPlatformVersionCode();
+
+  Future<bool?> requestAuthorization();
 }

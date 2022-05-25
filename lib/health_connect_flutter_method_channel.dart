@@ -18,4 +18,9 @@ class MethodChannelHealthConnectFlutter extends HealthConnectFlutterPlatform {
   Future<int?> getPlatformVersionCode() async {
     return await methodChannel.invokeMethod<int>('getPlatformVersionCode');
   }
+
+  @override
+  Future<bool?> requestAuthorization() async {
+    return await methodChannel.invokeMethod<bool>('requestAuthorization');
+  }
 }
