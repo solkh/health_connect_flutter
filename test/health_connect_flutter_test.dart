@@ -4,12 +4,11 @@ import 'package:health_connect_flutter/health_connect_flutter_platform_interface
 import 'package:health_connect_flutter/health_connect_flutter_method_channel.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
-class MockHealthConnectFlutterPlatform 
-    with MockPlatformInterfaceMixin
-    implements HealthConnectFlutterPlatform {
-
+class MockHealthConnectFlutterPlatform with MockPlatformInterfaceMixin implements HealthConnectFlutterPlatform {
   @override
-  Future<String?> getPlatformVersion() => Future.value('42');
+  Future<String?> getPlatformVersionName() => Future.value('42');
+  @override
+  Future<int?> getPlatformVersionCode() => Future.value(42);
 }
 
 void main() {
@@ -23,7 +22,7 @@ void main() {
     HealthConnectFlutter healthConnectFlutterPlugin = HealthConnectFlutter();
     MockHealthConnectFlutterPlatform fakePlatform = MockHealthConnectFlutterPlatform();
     HealthConnectFlutterPlatform.instance = fakePlatform;
-  
+
     expect(await healthConnectFlutterPlugin.getPlatformVersion(), '42');
   });
 }

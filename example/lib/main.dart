@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'dart:async';
 
@@ -31,9 +33,11 @@ class _MyAppState extends State<MyApp> {
     // Platform messages may fail, so we use a try/catch PlatformException.
     // We also handle the message potentially returning null.
     try {
-      platformVersion =
-          await _healthConnectFlutterPlugin.getPlatformVersion() ?? 'Unknown platform version';
+      platformVersion = await _healthConnectFlutterPlugin.getPlatformVersion() ?? 'Unknown platform version';
     } on PlatformException {
+      platformVersion = 'Failed to get platform version.';
+    } catch (err) {
+      log(err.toString());
       platformVersion = 'Failed to get platform version.';
     }
 

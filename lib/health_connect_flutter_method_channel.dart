@@ -10,8 +10,12 @@ class MethodChannelHealthConnectFlutter extends HealthConnectFlutterPlatform {
   final methodChannel = const MethodChannel('health_connect_flutter');
 
   @override
-  Future<String?> getPlatformVersion() async {
-    final version = await methodChannel.invokeMethod<String>('getPlatformVersion');
-    return version;
+  Future<String?> getPlatformVersionName() async {
+    return await methodChannel.invokeMethod<String>('getPlatformVersionName');
+  }
+
+  @override
+  Future<int?> getPlatformVersionCode() async {
+    return await methodChannel.invokeMethod<int>('getPlatformVersionCode');
   }
 }

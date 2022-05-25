@@ -14,7 +14,7 @@ abstract class HealthConnectFlutterPlatform extends PlatformInterface {
   ///
   /// Defaults to [MethodChannelHealthConnectFlutter].
   static HealthConnectFlutterPlatform get instance => _instance;
-  
+
   /// Platform-specific implementations should set this with their own
   /// platform-specific class that extends [HealthConnectFlutterPlatform] when
   /// they register themselves.
@@ -23,7 +23,6 @@ abstract class HealthConnectFlutterPlatform extends PlatformInterface {
     _instance = instance;
   }
 
-  Future<String?> getPlatformVersion() {
-    throw UnimplementedError('platformVersion() has not been implemented.');
-  }
+  Future<String?> getPlatformVersionName();
+  Future<int?> getPlatformVersionCode();
 }
