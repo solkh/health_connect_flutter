@@ -1,5 +1,7 @@
 package com.solgr.health_connect_flutter
 
+import android.app.Activity
+import android.content.Context
 import android.util.Log
 import androidx.annotation.NonNull
 import androidx.health.connect.client.permission.Permission
@@ -11,6 +13,8 @@ import com.solgr.health_connect_flutter.models.requestAuthorization
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.embedding.engine.plugins.FlutterPlugin
+import io.flutter.embedding.engine.plugins.activity.ActivityAware
+import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 import io.flutter.embedding.engine.plugins.util.GeneratedPluginRegister
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
@@ -28,9 +32,11 @@ class HealthConnectFlutterPlugin : FlutterPlugin, MethodCallHandler, FlutterActi
     /// when the Flutter Engine is detached from the Activity
     private lateinit var channel: MethodChannel
     private lateinit var healthConnectManager: HealthConnectManager
+    private lateinit var mContext: Context
+    private lateinit var mActivity: Activity
     private var mResult: Result? = null
 
-    val permissions = setOf(
+    private val permissions = setOf(
         Permission.createReadPermission(Weight::class),
         Permission.createWritePermission(Weight::class),
     )
@@ -41,13 +47,15 @@ class HealthConnectFlutterPlugin : FlutterPlugin, MethodCallHandler, FlutterActi
 
 
     override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
-        Log.i(TAG, "onAttachedToEngine: onAttachedToEngine")
+        Log.i(TAG, "%%%%%%%%%%%%%%%%%%%%%%%%%% onAttachedToEngine ")
         channel = MethodChannel(flutterPluginBinding.binaryMessenger, "health_connect_flutter")
         channel.setMethodCallHandler(this)
-        healthConnectManager = HealthConnectManager(flutterPluginBinding.applicationContext)
+        mContext = flutterPluginBinding.applicationContext
+        healthConnectManager = HealthConnectManager(mContext)
     }
 
     override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
+        Log.i(TAG, "%%%%%%%%%%%%%%%%%%%%%%%%%% onMethodCall ")
         if (checkHealthConnectAvailability(result)) {
             lifecycleScope.launch {
                 when (call.method) {
@@ -66,7 +74,6 @@ class HealthConnectFlutterPlugin : FlutterPlugin, MethodCallHandler, FlutterActi
 
     private fun checkHealthConnectAvailability(@NonNull result: Result): Boolean {
 
-        return true
         when (HealthConnectavailability) {
             HealthConnectAvailability.NOT_INSTALLED -> result.error(
                 "NOT_INSTALLED",
@@ -83,31 +90,41 @@ class HealthConnectFlutterPlugin : FlutterPlugin, MethodCallHandler, FlutterActi
         return false
     }
 
-    private suspend fun requestAuthorizationFunction(@NonNull result: Result): Boolean {
+    private suspend fun requestAuthorizationFunction(@NonNull result: Result) {
         val permissionsGranted = healthConnectManager.hasAllPermissions(permissions)
         if (!permissionsGranted) {
             mResult = result
             // TODO:  request permissions
-            throw Exception("permissions not granted \\n request permissions needed");
+            result.error("401","permissions not granted" ,"request permissions needed")
         } else {
-            return permissionsGranted;
+            return result.success(true);
         }
     }
-//
+
 //    override fun onAttachedToActivity(binding: ActivityPluginBinding) {
+//        Log.i(TAG, "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% onAttachedToActivity: ")
 //        print("%%%%%%%%%%%%%%%% onAttachedToActivity")
-//        activity = binding.activity
+//        mActivity = binding.activity
 //    }
 //
 //    override fun onDetachedFromActivityForConfigChanges() {
+//        Log.i(
+//            TAG,
+//            "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% onDetachedFromActivityForConfigChanges: "
+//        )
 //        print("%%%%%%%%%%%%%%%% onDetachedFromActivityForConfigChanges")
 //    }
 //
 //    override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
+//        Log.i(
+//            TAG,
+//            "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% onReattachedToActivityForConfigChanges: "
+//        )
 //        print("%%%%%%%%%%%%%%%% onReattachedToActivityForConfigChanges")
 //    }
 //
 //    override fun onDetachedFromActivity() {
+//        Log.i(TAG, "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% onDetachedFromActivity: ")
 //        print("%%%%%%%%%%%%%%%% onDetachedFromActivity")
 //    }
 }

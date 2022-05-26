@@ -62,8 +62,12 @@ class _MyAppState extends State<MyApp> {
             ElevatedButton(
               child: const Text('requestAuthorization'),
               onPressed: () async {
-                var res = await _healthConnectFlutterPlugin.requestAuthorization();
-                log(res.toString());
+                try {
+                  var res = await _healthConnectFlutterPlugin.requestAuthorization();
+                  log(res.toString());
+                } catch (err) {
+                  log(err.toString());
+                }
               },
             ),
           ],

@@ -17,6 +17,7 @@ package com.solgr.health_connect_flutter
 
 import android.content.Context
 import android.os.Build
+import android.util.Log
 import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.PermissionController
 import androidx.health.connect.client.permission.HealthDataRequestPermissions
@@ -38,9 +39,8 @@ class HealthConnectManager(private val context: Context) {
 //    private lateinit var healthConnectClient : HealthConnectClient
     private val healthConnectClient by lazy { HealthConnectClient.getOrCreate(context) }
 
-
-
     init {
+        Log.i(TAG, "%%%%%%%%%%%%%%%%%%%%%%%%%%%% HealthConnectClient.isAvailable : ${HealthConnectClient.isAvailable(context)}")
         HealthConnectavailability = when {
             HealthConnectClient.isAvailable(context) -> HealthConnectAvailability.INSTALLED
             isSupported() -> HealthConnectAvailability.NOT_INSTALLED

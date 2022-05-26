@@ -4,4 +4,10 @@
 
   <uses-sdk tools:overrideLibrary="androidx.health.connect.client"/>
 
+  <!-- To check whether healthCore apk is installed or not -->
+  <queries>
+    <package android:name="com.google.android.apps.healthdata" />
+  </queries>
+
+
 </manifest>

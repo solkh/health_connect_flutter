@@ -21,7 +21,8 @@ class HealthConnectFlutter {
       bool result = await MethodChannelHealthConnectFlutter().requestAuthorization() ?? false;
       return result;
     } catch (err) {
-      rethrow;
+      debugPrint(err.toString());
     }
+    return false;
   }
 }
