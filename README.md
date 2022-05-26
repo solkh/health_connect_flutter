@@ -36,6 +36,7 @@ Declare the permissions your app will use. Create an array resource in res/value
 
 if app minimum sdk version less than 27 add this:
 
-```<manifest xmlns:tools="http://schemas.android.com/tools" ... >
+```
+<manifest xmlns:tools="http://schemas.android.com/tools" ... >
   <uses-sdk tools:overrideLibrary="com.solgr.health_connect_flutter" />
 ```
