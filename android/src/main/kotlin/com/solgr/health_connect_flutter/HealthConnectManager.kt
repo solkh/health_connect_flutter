@@ -30,7 +30,7 @@ import java.time.Instant
 
 // The minimum android level that can use Health Connect
 const val MIN_SUPPORTED_SDK = Build.VERSION_CODES.O_MR1
-var  HealthConnectavailability = HealthConnectAvailability.NOT_SUPPORTED
+var  HealthConnectAvailability = HealthConnectAvailabilityStatus.NOT_SUPPORTED
 
 /**
  * Demonstrates reading and writing from Health Connect.
@@ -41,10 +41,10 @@ class HealthConnectManager(private val context: Context) {
 
     init {
         Log.i(TAG, "%%%%%%%%%%%%%%%%%%%%%%%%%%%% HealthConnectClient.isAvailable : ${HealthConnectClient.isAvailable(context)}")
-        HealthConnectavailability = when {
-            HealthConnectClient.isAvailable(context) -> HealthConnectAvailability.INSTALLED
-            isSupported() -> HealthConnectAvailability.NOT_INSTALLED
-            else -> HealthConnectAvailability.NOT_SUPPORTED
+        HealthConnectAvailability = when {
+            HealthConnectClient.isAvailable(context) -> HealthConnectAvailabilityStatus.INSTALLED
+            isSupported() -> HealthConnectAvailabilityStatus.NOT_INSTALLED
+            else -> HealthConnectAvailabilityStatus.NOT_SUPPORTED
         }
     }
 
@@ -112,7 +112,7 @@ class HealthConnectManager(private val context: Context) {
  * installed but supported on the device, or whether the device is not supported (based on Android
  * version).
  */
-enum class HealthConnectAvailability {
+enum class HealthConnectAvailabilityStatus {
     INSTALLED,
     NOT_INSTALLED,
     NOT_SUPPORTED

@@ -1,13 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-  xmlns:tools="http://schemas.android.com/tools"
-  package="com.solgr.health_connect_flutter">
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.solgr.health_connect_flutter">
 
-  <uses-sdk tools:overrideLibrary="androidx.health.connect.client"/>
+    <uses-sdk tools:overrideLibrary="androidx.health.connect.client" />
+    <!-- To check whether healthCore apk is installed or not -->
+    <queries>
+        <package android:name="com.google.android.apps.healthdata" />
+    </queries>
 
-  <!-- To check whether healthCore apk is installed or not -->
-  <queries>
-    <package android:name="com.google.android.apps.healthdata" />
-  </queries>
-
+    <application>
+        <activity
+            android:name=".AskPermissionActivity"
+            android:exported="false"
+           android:theme="@style/Theme.AppCompat" />
+    </application>
 
 </manifest>

@@ -23,4 +23,9 @@ class MethodChannelHealthConnectFlutter extends HealthConnectFlutterPlatform {
   Future<bool?> requestAuthorization() async {
     return await methodChannel.invokeMethod<bool>('requestAuthorization');
   }
+
+  @override
+  Future<bool?> checkHealthConnectAvailability() async {
+    return await methodChannel.invokeMethod<bool>('checkHealthConnectAvailability');
+  }
 }

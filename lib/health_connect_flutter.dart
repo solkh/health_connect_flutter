@@ -18,8 +18,8 @@ class HealthConnectFlutter {
 
   Future<bool> requestAuthorization() async {
     try {
-      bool result = await MethodChannelHealthConnectFlutter().requestAuthorization() ?? false;
-      return result;
+      bool? result = await MethodChannelHealthConnectFlutter().requestAuthorization();
+      return result ?? false;
     } catch (err) {
       debugPrint(err.toString());
     }
