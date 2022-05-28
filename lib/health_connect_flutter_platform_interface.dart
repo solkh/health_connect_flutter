@@ -28,4 +28,6 @@ abstract class HealthConnectFlutterPlatform extends PlatformInterface {
 
   Future<bool?> requestAuthorization();
   Future<bool?> checkHealthConnectAvailability();
+  Future<List?> readRecords(List<String> types, String startDate, String endDate);
+  Future<bool?> writeRecords(double value, String type, String date);
 }

@@ -12,6 +12,14 @@ class MockHealthConnectFlutterPlatform with MockPlatformInterfaceMixin implement
 
   @override
   Future<bool?> requestAuthorization() => Future.value(false);
+
+  @override
+  Future<bool?> checkHealthConnectAvailability() => Future.value(false);
+  @override
+  Future<List?> readRecords(List<String> types, String startDate, String endDate) => Future.value([]);
+
+  @override
+  Future<bool?> writeRecords(double value, String type, String date) => Future.value(false);
 }
 
 void main() {

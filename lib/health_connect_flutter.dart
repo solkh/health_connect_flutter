@@ -25,4 +25,29 @@ class HealthConnectFlutter {
     }
     return false;
   }
+
+  Future<List> readRecords({required List<String> types, String? startDate, String? endDate}) async {
+    if (startDate == null) {
+      var now = DateTime.now();
+      startDate ??= DateTime(now.year, now.month, now.day).toIso8601String();
+    }
+    endDate ??= DateTime.now().toIso8601String();
+    try {
+      List? result = await MethodChannelHealthConnectFlutter().readRecords(types, startDate, endDate);
+      return result ?? [];
+    } catch (err) {
+      debugPrint(err.toString());
+    }
+    return [];
+  }
+
+  Future<bool> writeRecords(double value, String type, String date) async {
+    try {
+      bool? result = await MethodChannelHealthConnectFlutter().writeRecords(value, type, date);
+      return result ?? false;
+    } catch (err) {
+      debugPrint(err.toString());
+    }
+    return false;
+  }
 }

@@ -28,4 +28,24 @@ class MethodChannelHealthConnectFlutter extends HealthConnectFlutterPlatform {
   Future<bool?> checkHealthConnectAvailability() async {
     return await methodChannel.invokeMethod<bool>('checkHealthConnectAvailability');
   }
+
+  @override
+  Future<List?> readRecords(List<String> types, String startDate, String endDate) async {
+    Map<String, dynamic> arguments = {
+      "types": types,
+      "startDate": startDate,
+      "endDate": endDate,
+    };
+    return await methodChannel.invokeMethod<List?>('readRecords', arguments);
+  }
+
+  @override
+  Future<bool?> writeRecords(double value, String type, String date) async {
+    Map<String, dynamic> arguments = {
+      "value": value,
+      "type": type,
+      "date": date,
+    };
+    return await methodChannel.invokeMethod<bool>('writeRecords', arguments);
+  }
 }

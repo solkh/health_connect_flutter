@@ -7,11 +7,10 @@ import android.util.Log
 import androidx.annotation.NonNull
 import androidx.health.connect.client.permission.Permission
 import androidx.health.connect.client.records.Weight
+import androidx.health.connect.client.request.ReadRecordsRequest
+import androidx.health.connect.client.time.TimeRangeFilter
 import androidx.lifecycle.lifecycleScope
-import com.solgr.health_connect_flutter.models.checkHealthConnectAvailability
-import com.solgr.health_connect_flutter.models.getPlatformVersionCode
-import com.solgr.health_connect_flutter.models.getPlatformVersionName
-import com.solgr.health_connect_flutter.models.requestAuthorization
+import com.solgr.health_connect_flutter.models.*
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.embedding.engine.plugins.FlutterPlugin
@@ -23,6 +22,11 @@ import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
 import kotlinx.coroutines.launch
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.time.temporal.ChronoUnit
 
 const val TAG = "Health Connect Plugin"
 
@@ -66,9 +70,71 @@ class HealthConnectFlutterPlugin : FlutterPlugin, MethodCallHandler, FlutterActi
                 getPlatformVersionCode -> result.success(android.os.Build.VERSION.SDK_INT)
                 checkHealthConnectAvailability -> checkHealthConnectAvailability(result)
                 requestAuthorization -> requestAuthorizationFunction(result)
+                readRecords -> readRecords(call, result)
+                writeRecords -> writeRecords(call, result)
                 else -> result.notImplemented()
             }
         }
+    }
+
+    private suspend fun readRecords(@NonNull call: MethodCall, @NonNull result: Result) {
+        println("call arguments : ${call.arguments}")
+
+        var resultList = emptyList<Map<String, Any>>()
+        val readTypes = call.argument<List<String>>("types")
+        val startIsoDate = call.argument<String>("startDate")
+        val endIsoDate = call.argument<String>("endDate")
+
+        val startOfDay = ZonedDateTime.now().truncatedTo(ChronoUnit.DAYS)
+        val startDateInstant =
+            if (startIsoDate == null) startOfDay.toInstant() else LocalDateTime.parse(startIsoDate)
+                .atZone(ZoneId.systemDefault()).toInstant()
+        val endDateInstant =
+            if (endIsoDate == null) Instant.now() else LocalDateTime.parse(endIsoDate)
+                .atZone(ZoneId.systemDefault()).toInstant()
+
+        if (readTypes != null) {
+            for (recordTypeString in readTypes) {
+                println(recordTypeString)
+                val type = RecodeTypeParser().fromString(recordTypeString)
+                println(type)
+                val request = ReadRecordsRequest(
+                    recordType = Weight::class,
+                    timeRangeFilter = TimeRangeFilter.between(startDateInstant, endDateInstant)
+                )
+                val response = healthConnectManager.healthConnectClient.readRecords(request)
+                response.records
+                Log.e(TAG, "readRecords: $recordTypeString ${response.records}")
+                for (item in response.records) {
+
+                    var res = mapOf("value" to item.weightKg,
+                        "date" to item.time.toString(),
+                        "unit" to "KG"
+                    )
+                    resultList += res;
+                }
+            }
+        }
+        result.success(resultList)
+    }
+
+    private suspend fun writeRecords(@NonNull call: MethodCall, @NonNull result: Result) {
+        println("call arguments : ${call.arguments}")
+        val value = call.argument<Double>("value")
+        val writeType = call.argument<String>("type")
+        val isoDate = call.argument<String>("date")
+
+        val dateInstant =
+            if (isoDate == null) Instant.now() else LocalDateTime.parse(isoDate)
+                .atZone(ZoneId.systemDefault()).toInstant()
+
+        val records = listOf(Weight(value!!, time = dateInstant, zoneOffset = null))
+        val recordResponse =
+            healthConnectManager.healthConnectClient.insertRecords(records)
+        if (recordResponse.recordUidsList.isNotEmpty()) {
+            return result.success(true)
+        }
+        return result.success(false)
     }
 
     private fun checkHealthConnectAvailability(@NonNull result: Result): Boolean {
@@ -97,7 +163,7 @@ class HealthConnectFlutterPlugin : FlutterPlugin, MethodCallHandler, FlutterActi
             mActivity.startActivityForResult(intent, permissionRequestCode)
 //            result.error("401", "permissions not granted", "request permissions needed")
         } else {
-            return result.success(true);
+            return result.success(true)
         }
     }
 

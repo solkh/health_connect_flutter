@@ -27,6 +27,7 @@ import androidx.health.connect.client.request.AggregateRequest
 import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.time.TimeRangeFilter
 import java.time.Instant
+import kotlin.reflect.KClass
 
 // The minimum android level that can use Health Connect
 const val MIN_SUPPORTED_SDK = Build.VERSION_CODES.O_MR1
@@ -36,8 +37,7 @@ var  HealthConnectAvailability = HealthConnectAvailabilityStatus.NOT_SUPPORTED
  * Demonstrates reading and writing from Health Connect.
  */
 class HealthConnectManager(private val context: Context) {
-//    private lateinit var healthConnectClient : HealthConnectClient
-    private val healthConnectClient by lazy { HealthConnectClient.getOrCreate(context) }
+      val healthConnectClient by lazy { HealthConnectClient.getOrCreate(context) }
 
     init {
         Log.i(TAG, "%%%%%%%%%%%%%%%%%%%%%%%%%%%% HealthConnectClient.isAvailable : ${HealthConnectClient.isAvailable(context)}")
@@ -57,49 +57,6 @@ class HealthConnectManager(private val context: Context) {
     suspend fun hasAllPermissions(permissions: Set<Permission>): Boolean {
         val granted = healthConnectClient.permissionController.getGrantedPermissions(permissions)
         return granted.containsAll(permissions)
-    }
-
-    /**
-     * Writes [Weight] record to Health Connect.
-     */
-    suspend fun writeWeightInput(weight: Weight) {
-        val records = listOf(weight)
-        healthConnectClient.insertRecords(records)
-    }
-
-    /**
-     * Reads in existing [Weight] records.
-     */
-    suspend fun readWeightInputs(start: Instant, end: Instant): List<Weight> {
-        val request = ReadRecordsRequest(
-            recordType = Weight::class,
-            timeRangeFilter = TimeRangeFilter.between(start, end)
-        )
-        val response = healthConnectClient.readRecords(request)
-        return response.records
-    }
-
-    /**
-     * Returns the weekly average of [Weight] records.
-     */
-    suspend fun computeWeeklyAverage(start: Instant, end: Instant): Double? {
-        val request = AggregateRequest(
-            metrics = setOf(Weight.WEIGHT_AVG),
-            timeRangeFilter = TimeRangeFilter.between(start, end)
-        )
-        val response = healthConnectClient.aggregate(request)
-        return response.getMetric(Weight.WEIGHT_AVG)
-    }
-
-    /**
-     * Deletes a [Weight] record.
-     */
-    suspend fun deleteWeightInput(uid: String) {
-        healthConnectClient.deleteRecords(
-            Weight::class,
-            uidsList = listOf(uid),
-            clientIdsList = emptyList()
-        )
     }
 
 

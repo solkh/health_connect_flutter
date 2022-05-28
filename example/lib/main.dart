@@ -3,7 +3,6 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'dart:async';
 
-import 'package:flutter/services.dart';
 import 'package:health_connect_flutter/health_connect_flutter.dart';
 
 void main() {
@@ -18,34 +17,24 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  String _platformVersion = 'Unknown';
   final _healthConnectFlutterPlugin = HealthConnectFlutter();
+  final TextEditingController _weightTextEditController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    initPlatformState();
+    loadWeightRecords();
   }
 
-  // Platform messages are asynchronous, so we initialize in an async method.
-  Future<void> initPlatformState() async {
-    String platformVersion;
-    // Platform messages may fail, so we use a try/catch PlatformException.
-    // We also handle the message potentially returning null.
+  Future<void> loadWeightRecords() async {
     try {
-      platformVersion = await _healthConnectFlutterPlugin.getPlatformVersion() ?? 'Unknown platform version';
-    } on PlatformException {
-      platformVersion = 'Failed to get platform version.';
+      var res = await _healthConnectFlutterPlugin.readRecords(types: ["WEIGHT"]);
+      for (var element in res) {
+        log(element.toString());
+      }
     } catch (err) {
       log(err.toString());
-      platformVersion = 'Failed to get platform version.';
     }
-
-    if (!mounted) return;
-
-    setState(() {
-      _platformVersion = platformVersion;
-    });
   }
 
   @override
@@ -58,20 +47,53 @@ class _MyAppState extends State<MyApp> {
         body: ListView(
           children: [
             const SizedBox(height: 24),
-            Center(child: Text('Running on: $_platformVersion\n')),
+            _writeWeight(),
             ElevatedButton(
               child: const Text('requestAuthorization'),
-              onPressed: () async {
-                try {
-                  var res = await _healthConnectFlutterPlugin.requestAuthorization();
-                  log(res.toString());
-                } catch (err) {
-                  log(err.toString());
-                }
-              },
+              onPressed: () async {},
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _writeWeight() {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Row(
+        children: [
+          const Text('enter Weight Value :'),
+          Expanded(
+            child: TextField(
+              controller: _weightTextEditController,
+              keyboardType: const TextInputType.numberWithOptions(signed: true),
+            ),
+          ),
+          ElevatedButton(
+            child: const Text('Save'),
+            onPressed: () async {
+              try {
+                var value = double.tryParse(_weightTextEditController.text);
+                if (value != null) {
+                  var result = await _healthConnectFlutterPlugin.writeRecords(value, 'Weight', DateTime.now().toIso8601String());
+
+                  if (!mounted) return;
+                  if (result) {
+                    log('Write Weight successfully');
+                    loadWeightRecords();
+                  } else {
+                    log('Write Weight Faild');
+                  }
+                }
+              } catch (err) {
+                log(err.toString());
+              }
+
+              if (!mounted) return;
+            },
+          ),
+        ],
       ),
     );
   }
