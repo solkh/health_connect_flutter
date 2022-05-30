@@ -1,40 +1,48 @@
 import 'dart:convert';
 
+import 'package:health_connect_flutter/models/record_type_enum.dart';
+
 class RecordModel {
   double? value;
-  String? data;
+  String? date;
   String? unit;
+  RecordTypeEnum? recordType;
   RecordModel({
     this.value,
-    this.data,
+    this.date,
     this.unit,
+    this.recordType,
   });
 
   RecordModel copyWith({
     double? value,
-    String? data,
+    String? date,
     String? unit,
+    RecordTypeEnum? recordType,
   }) {
     return RecordModel(
       value: value ?? this.value,
-      data: data ?? this.data,
+      date: date ?? this.date,
       unit: unit ?? this.unit,
+      recordType: recordType ?? this.recordType,
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
       'value': value,
-      'data': data,
+      'date': date,
       'unit': unit,
+      'recordType': recordType?.index,
     };
   }
 
   factory RecordModel.fromMap(Map<String, dynamic> map) {
     return RecordModel(
       value: map['value']?.toDouble(),
-      data: map['data'],
+      date: map['date'],
       unit: map['unit'],
+      recordType: map['recordType'] != null ? RecordTypeEnum.values[map['recordType']] : null,
     );
   }
 
@@ -43,15 +51,19 @@ class RecordModel {
   factory RecordModel.fromJson(String source) => RecordModel.fromMap(json.decode(source));
 
   @override
-  String toString() => 'RecordModel(value: $value, data: $data, unit: $unit)';
+  String toString() {
+    return 'RecordModel(value: $value, date: $date, unit: $unit, recordType: $recordType)';
+  }
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
 
-    return other is RecordModel && other.value == value && other.data == data && other.unit == unit;
+    return other is RecordModel && other.value == value && other.date == date && other.unit == unit && other.recordType == recordType;
   }
 
   @override
-  int get hashCode => value.hashCode ^ data.hashCode ^ unit.hashCode;
+  int get hashCode {
+    return value.hashCode ^ date.hashCode ^ unit.hashCode ^ recordType.hashCode;
+  }
 }

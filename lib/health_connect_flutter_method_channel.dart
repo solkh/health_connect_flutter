@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:health_connect_flutter/models/record_type_enum.dart';
 
 import 'health_connect_flutter_platform_interface.dart';
 
@@ -30,9 +31,9 @@ class MethodChannelHealthConnectFlutter extends HealthConnectFlutterPlatform {
   }
 
   @override
-  Future<List?> readRecords(List<String> types, String startDate, String endDate) async {
+  Future<List?> readRecords(List<RecordTypeEnum> recordTypes, String startDate, String endDate) async {
     Map<String, dynamic> arguments = {
-      "types": types,
+      "recordTypes": recordTypes.map((e) => e.index).toList(),
       "startDate": startDate,
       "endDate": endDate,
     };
@@ -40,11 +41,11 @@ class MethodChannelHealthConnectFlutter extends HealthConnectFlutterPlatform {
   }
 
   @override
-  Future<bool?> writeRecords(double value, String type, String date) async {
+  Future<bool?> writeRecords(double value, RecordTypeEnum recordType, String createDate) async {
     Map<String, dynamic> arguments = {
       "value": value,
-      "type": type,
-      "date": date,
+      "recordType": recordType.index,
+      "createDate": createDate,
     };
     return await methodChannel.invokeMethod<bool>('writeRecords', arguments);
   }

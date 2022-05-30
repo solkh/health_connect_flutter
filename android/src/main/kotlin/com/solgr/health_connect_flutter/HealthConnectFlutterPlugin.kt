@@ -55,7 +55,6 @@ class HealthConnectFlutterPlugin : FlutterPlugin, MethodCallHandler, FlutterActi
     }
 
     override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
-        Log.i(TAG, "%%%%%%%%%%%%%%%%%%%%%%%%%% onAttachedToEngine ")
         channel = MethodChannel(flutterPluginBinding.binaryMessenger, "health_connect_flutter")
         channel.setMethodCallHandler(this)
         mContext = flutterPluginBinding.applicationContext
@@ -63,7 +62,6 @@ class HealthConnectFlutterPlugin : FlutterPlugin, MethodCallHandler, FlutterActi
     }
 
     override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
-        Log.i(TAG, "%%%%%%%%%%%%%%%%%%%%%%%%%% onMethodCall ")
         lifecycleScope.launch {
             when (call.method) {
                 getPlatformVersionName -> result.success(android.os.Build.VERSION.RELEASE)
@@ -78,10 +76,8 @@ class HealthConnectFlutterPlugin : FlutterPlugin, MethodCallHandler, FlutterActi
     }
 
     private suspend fun readRecords(@NonNull call: MethodCall, @NonNull result: Result) {
-        println("call arguments : ${call.arguments}")
-
-        var resultList = emptyList<Map<String, Any>>()
-        val readTypes = call.argument<List<String>>("types")
+        val resultList = emptyList<RecordModel>().toMutableList()
+        val recordTypes = call.argument<List<Int>>("recordTypes")
         val startIsoDate = call.argument<String>("startDate")
         val endIsoDate = call.argument<String>("endDate")
 
@@ -93,46 +89,30 @@ class HealthConnectFlutterPlugin : FlutterPlugin, MethodCallHandler, FlutterActi
             if (endIsoDate == null) Instant.now() else LocalDateTime.parse(endIsoDate)
                 .atZone(ZoneId.systemDefault()).toInstant()
 
-        if (readTypes != null) {
-            for (recordTypeString in readTypes) {
-                println(recordTypeString)
-                val type = RecodeTypeParser().fromString(recordTypeString)
-                println(type)
-                val request = ReadRecordsRequest(
-                    recordType = Weight::class,
-                    timeRangeFilter = TimeRangeFilter.between(startDateInstant, endDateInstant)
-                )
-                val response = healthConnectManager.healthConnectClient.readRecords(request)
-                response.records
-                Log.e(TAG, "readRecords: $recordTypeString ${response.records}")
-                for (item in response.records) {
-
-                    var res = mapOf("value" to item.weightKg,
-                        "date" to item.time.toString(),
-                        "unit" to "KG"
-                    )
-                    resultList += res;
-                }
+        if (recordTypes != null) {
+            for (recordType in recordTypes) {
+                resultList +=  healthConnectManager.readRecords(RecordTypeEnum.values()[recordType],startDateInstant,endDateInstant)
             }
         }
-        result.success(resultList)
+        result.success(resultList.map { element -> element.toMap() })
     }
 
     private suspend fun writeRecords(@NonNull call: MethodCall, @NonNull result: Result) {
-        println("call arguments : ${call.arguments}")
         val value = call.argument<Double>("value")
-        val writeType = call.argument<String>("type")
-        val isoDate = call.argument<String>("date")
+        val recordType = call.argument<Int>("recordType")
+        val isoCreateDate = call.argument<String>("createDate")
 
-        val dateInstant =
-            if (isoDate == null) Instant.now() else LocalDateTime.parse(isoDate)
+        val createDateInstant =
+            if (isoCreateDate == null) Instant.now() else LocalDateTime.parse(isoCreateDate)
                 .atZone(ZoneId.systemDefault()).toInstant()
-
-        val records = listOf(Weight(value!!, time = dateInstant, zoneOffset = null))
-        val recordResponse =
-            healthConnectManager.healthConnectClient.insertRecords(records)
-        if (recordResponse.recordUidsList.isNotEmpty()) {
-            return result.success(true)
+        if(value != null && recordType != null) {
+            return result.success(
+                healthConnectManager.writeRecords(
+                    value,
+                    RecordTypeEnum.values()[recordType],
+                    createDateInstant
+                )
+            )
         }
         return result.success(false)
     }
@@ -177,23 +157,15 @@ class HealthConnectFlutterPlugin : FlutterPlugin, MethodCallHandler, FlutterActi
     }
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
-        Log.i(TAG, "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% onAttachedToActivity")
-        print("%%%%%%%%%%%%%%%% onAttachedToActivity")
         mActivity = binding.activity
     }
 
     override fun onDetachedFromActivityForConfigChanges() {
-        Log.i(TAG, "%%%%%%%%%%%%%%%%%%%%%%%% onDetachedFromActivityForConfigChanges")
-        print("%%%%%%%%%%%%%%%% onDetachedFromActivityForConfigChanges")
     }
 
     override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
-        Log.i(TAG, "%%%%%%%%%%%%%%%%%%%%%%%% onReattachedToActivityForConfigChanges")
-        print("%%%%%%%%%%%%%%%% onReattachedToActivityForConfigChanges")
     }
 
     override fun onDetachedFromActivity() {
-        Log.i(TAG, "%%%%%%%%%%%%%%%%%%%%%%%% onDetachedFromActivity:")
-        print("%%%%%%%%%%%%%%%% onDetachedFromActivity")
     }
 }

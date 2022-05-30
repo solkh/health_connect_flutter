@@ -5,6 +5,7 @@ import 'dart:async';
 
 import 'package:health_connect_flutter/health_connect_flutter.dart';
 import 'package:health_connect_flutter/models/record_model.dart';
+import 'package:health_connect_flutter/models/record_type_enum.dart';
 
 void main() {
   runApp(const MyApp());
@@ -30,7 +31,7 @@ class _MyAppState extends State<MyApp> {
 
   Future<void> loadWeightRecords() async {
     try {
-      recodeList = await _healthConnectFlutterPlugin.readRecords(types: ["WEIGHT"], startDate: DateTime(1990).toIso8601String());
+      recodeList = await _healthConnectFlutterPlugin.readRecords(types: [RecordTypeEnum.weight], startDate: DateTime(1990).toIso8601String());
       setState(() {});
     } catch (err) {
       log(err.toString());
@@ -73,7 +74,7 @@ class _MyAppState extends State<MyApp> {
               try {
                 var value = double.tryParse(_weightTextEditController.text);
                 if (value != null) {
-                  var result = await _healthConnectFlutterPlugin.writeRecords(value, 'Weight', DateTime.now().toIso8601String());
+                  var result = await _healthConnectFlutterPlugin.writeRecords(value, RecordTypeEnum.weight, DateTime.now().toIso8601String());
 
                   if (!mounted) return;
                   if (result) {
@@ -104,7 +105,7 @@ class _MyAppState extends State<MyApp> {
           return Card(
             child: ListTile(
               title: Text('${item.value} ${item.unit}'),
-              trailing: Text(item.data ?? ''),
+              trailing: Text(item.date ?? ''),
             ),
           );
         },

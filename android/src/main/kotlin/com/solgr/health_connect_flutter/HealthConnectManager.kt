@@ -18,29 +18,38 @@ package com.solgr.health_connect_flutter
 import android.content.Context
 import android.os.Build
 import android.util.Log
+import androidx.annotation.ChecksSdkIntAtLeast
 import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.PermissionController
+import androidx.health.connect.client.metadata.Metadata
 import androidx.health.connect.client.permission.HealthDataRequestPermissions
 import androidx.health.connect.client.permission.Permission
 import androidx.health.connect.client.records.Weight
-import androidx.health.connect.client.request.AggregateRequest
 import androidx.health.connect.client.request.ReadRecordsRequest
+import androidx.health.connect.client.response.InsertRecordsResponse
 import androidx.health.connect.client.time.TimeRangeFilter
+import com.solgr.health_connect_flutter.models.RecordModel
+import com.solgr.health_connect_flutter.models.RecordTypeEnum
 import java.time.Instant
-import kotlin.reflect.KClass
+import java.util.*
 
 // The minimum android level that can use Health Connect
 const val MIN_SUPPORTED_SDK = Build.VERSION_CODES.O_MR1
-var  HealthConnectAvailability = HealthConnectAvailabilityStatus.NOT_SUPPORTED
+var HealthConnectAvailability = HealthConnectAvailabilityStatus.NOT_SUPPORTED
 
 /**
  * Demonstrates reading and writing from Health Connect.
  */
 class HealthConnectManager(private val context: Context) {
-      val healthConnectClient by lazy { HealthConnectClient.getOrCreate(context) }
+    val healthConnectClient by lazy { HealthConnectClient.getOrCreate(context) }
 
     init {
-        Log.i(TAG, "%%%%%%%%%%%%%%%%%%%%%%%%%%%% HealthConnectClient.isAvailable : ${HealthConnectClient.isAvailable(context)}")
+        Log.i(
+            TAG,
+            "%%%%%%%%%%%%%%%%%%%%%%%%%%%% HealthConnectClient.isAvailable : ${
+                HealthConnectClient.isAvailable(context)
+            }"
+        )
         HealthConnectAvailability = when {
             HealthConnectClient.isAvailable(context) -> HealthConnectAvailabilityStatus.INSTALLED
             isSupported() -> HealthConnectAvailabilityStatus.NOT_INSTALLED
@@ -60,7 +69,51 @@ class HealthConnectManager(private val context: Context) {
     }
 
 
-    private fun isSupported() = android.os.Build.VERSION.SDK_INT >= MIN_SUPPORTED_SDK
+    @ChecksSdkIntAtLeast(api = MIN_SUPPORTED_SDK)
+    private fun isSupported() =  Build.VERSION.SDK_INT >= MIN_SUPPORTED_SDK
+
+
+
+    /**
+     * Reads records.
+     */
+    suspend fun readRecords(  recordType : RecordTypeEnum, startTime: Instant, endTime: Instant) : List<RecordModel>{
+        return when (recordType){
+            RecordTypeEnum.Weight -> return readWeightInputs(startTime,endTime )
+            else -> emptyList()
+        }
+    }
+
+    /** * Reads in existing [Weight] records. */
+   private suspend fun readWeightInputs(start: Instant, end: Instant): List<RecordModel> {
+        println("recordType")
+        val request = ReadRecordsRequest( recordType = Weight::class, timeRangeFilter = TimeRangeFilter.between(start, end))
+        val response = healthConnectClient.readRecords(request)
+        return response.records.map { weight -> RecordModel(weight.weightKg, weight.time, "KG",RecordTypeEnum.Weight)}
+    }
+
+
+
+    /**
+     * Writes records.
+     */
+    suspend fun writeRecords( value : Double, recordType : RecordTypeEnum, createDate: Instant ) : Boolean{
+        return when (recordType){
+            RecordTypeEnum.Weight -> return writeWeightRecord(value,createDate )
+            else -> false
+        }
+    }
+
+    /** * Writes in [Weight] records. */
+    suspend fun writeWeightRecord(value : Double,createDate: Instant): Boolean {
+        val records = listOf(Weight(
+            value,
+            time = createDate,
+            zoneOffset = null,
+            metadata = Metadata(UUID.randomUUID().toString())
+        ))
+      return  healthConnectClient.insertRecords(records).recordUidsList.isNotEmpty()
+    }
 }
 
 /**

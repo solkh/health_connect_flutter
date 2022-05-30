@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:health_connect_flutter/health_connect_flutter_method_channel.dart';
 import 'package:health_connect_flutter/models/record_model.dart';
+import 'package:health_connect_flutter/models/record_type_enum.dart';
 
 import 'health_connect_flutter_platform_interface.dart';
 
@@ -27,7 +28,7 @@ class HealthConnectFlutter {
     return false;
   }
 
-  Future<List<RecordModel>> readRecords({required List<String> types, String? startDate, String? endDate}) async {
+  Future<List<RecordModel>> readRecords({required List<RecordTypeEnum> types, String? startDate, String? endDate}) async {
     if (startDate == null) {
       var now = DateTime.now();
       startDate ??= DateTime(now.year, now.month, now.day).toIso8601String();
@@ -42,9 +43,10 @@ class HealthConnectFlutter {
     return [];
   }
 
-  Future<bool> writeRecords(double value, String type, String date) async {
+  Future<bool> writeRecords(double value, RecordTypeEnum recordType, String createDate) async {
     try {
-      bool? result = await MethodChannelHealthConnectFlutter().writeRecords(value, type, date);
+      // TODO : check value validate 0 -> 1000
+      bool? result = await MethodChannelHealthConnectFlutter().writeRecords(value, recordType, createDate);
       return result ?? false;
     } catch (err) {
       debugPrint(err.toString());
