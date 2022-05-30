@@ -1,5 +1,6 @@
 package com.solgr.health_connect_flutter.models
 
+<<<<<<< HEAD
 import java.time.Instant
 
 
@@ -18,4 +19,7 @@ class RecordModel(
             "recordType" to recordTypeEnum.ordinal,
         )
     }
+=======
+class RecordModel {
+>>>>>>> 23d5414b317d8d867a60f1e8d574d13e69ebfcc9
 }
