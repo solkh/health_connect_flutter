@@ -1,28 +1,33 @@
 import 'dart:convert';
 
 import 'package:health_connect_flutter/models/record_type_enum.dart';
+import 'package:health_connect_flutter/models/record_unit.dart';
 
 class RecordModel {
   double? value;
-  String? date;
-  String? unit;
+  String? startDate;
+  String? endDate;
+  RecordUnitEnum? unit;
   RecordTypeEnum? recordType;
   RecordModel({
     this.value,
-    this.date,
+    this.startDate,
+    this.endDate,
     this.unit,
     this.recordType,
   });
 
   RecordModel copyWith({
     double? value,
-    String? date,
-    String? unit,
+    String? startDate,
+    String? endDate,
+    RecordUnitEnum? unit,
     RecordTypeEnum? recordType,
   }) {
     return RecordModel(
       value: value ?? this.value,
-      date: date ?? this.date,
+      startDate: startDate ?? this.startDate,
+      endDate: endDate ?? this.endDate,
       unit: unit ?? this.unit,
       recordType: recordType ?? this.recordType,
     );
@@ -31,8 +36,9 @@ class RecordModel {
   Map<String, dynamic> toMap() {
     return {
       'value': value,
-      'date': date,
-      'unit': unit,
+      'startDate': startDate,
+      'endDate': endDate,
+      'unit': unit?.index,
       'recordType': recordType?.index,
     };
   }
@@ -40,8 +46,9 @@ class RecordModel {
   factory RecordModel.fromMap(Map<String, dynamic> map) {
     return RecordModel(
       value: map['value']?.toDouble(),
-      date: map['date'],
-      unit: map['unit'],
+      startDate: map['startDate'],
+      endDate: map['endDate'],
+      unit: map['unit'] != null ? RecordUnitEnum.values[map['unit']] : null,
       recordType: map['recordType'] != null ? RecordTypeEnum.values[map['recordType']] : null,
     );
   }
@@ -52,18 +59,23 @@ class RecordModel {
 
   @override
   String toString() {
-    return 'RecordModel(value: $value, date: $date, unit: $unit, recordType: $recordType)';
+    return 'RecordModel(value: $value, startDate: $startDate, endDate: $endDate, unit: $unit, recordType: $recordType)';
   }
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
 
-    return other is RecordModel && other.value == value && other.date == date && other.unit == unit && other.recordType == recordType;
+    return other is RecordModel &&
+        other.value == value &&
+        other.startDate == startDate &&
+        other.endDate == endDate &&
+        other.unit == unit &&
+        other.recordType == recordType;
   }
 
   @override
   int get hashCode {
-    return value.hashCode ^ date.hashCode ^ unit.hashCode ^ recordType.hashCode;
+    return value.hashCode ^ startDate.hashCode ^ endDate.hashCode ^ unit.hashCode ^ recordType.hashCode;
   }
 }

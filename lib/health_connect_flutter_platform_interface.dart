@@ -1,3 +1,4 @@
+import 'package:health_connect_flutter/models/permission_type_enum.dart';
 import 'package:health_connect_flutter/models/record_type_enum.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
@@ -27,7 +28,7 @@ abstract class HealthConnectFlutterPlatform extends PlatformInterface {
   Future<String?> getPlatformVersionName();
   Future<int?> getPlatformVersionCode();
 
-  Future<bool?> requestAuthorization();
+  Future<bool?> requestPermissions(List<PermissionTypeEnum> permissionType, List<RecordTypeEnum> recordType);
   Future<bool?> checkHealthConnectAvailability();
   Future<List?> readRecords(List<RecordTypeEnum> recordTypes, String startDate, String endDate);
   Future<bool?> writeRecords(double value, RecordTypeEnum recordType, String createDate);

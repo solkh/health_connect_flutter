@@ -1,35 +1,21 @@
-/*
- * Copyright 2022 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.solgr.health_connect_flutter
 
 import android.content.Context
 import android.os.Build
-import android.util.Log
 import androidx.annotation.ChecksSdkIntAtLeast
 import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.PermissionController
 import androidx.health.connect.client.metadata.Metadata
 import androidx.health.connect.client.permission.HealthDataRequestPermissions
 import androidx.health.connect.client.permission.Permission
+import androidx.health.connect.client.records.ActiveCaloriesBurned
+import androidx.health.connect.client.records.ActiveEnergyBurned
 import androidx.health.connect.client.records.Weight
 import androidx.health.connect.client.request.ReadRecordsRequest
-import androidx.health.connect.client.response.InsertRecordsResponse
 import androidx.health.connect.client.time.TimeRangeFilter
 import com.solgr.health_connect_flutter.models.RecordModel
 import com.solgr.health_connect_flutter.models.RecordTypeEnum
+import com.solgr.health_connect_flutter.models.RecordUnitEnum
 import java.time.Instant
 import java.util.*
 
@@ -41,15 +27,9 @@ var HealthConnectAvailability = HealthConnectAvailabilityStatus.NOT_SUPPORTED
  * Demonstrates reading and writing from Health Connect.
  */
 class HealthConnectManager(private val context: Context) {
-    val healthConnectClient by lazy { HealthConnectClient.getOrCreate(context) }
+    private val healthConnectClient by lazy { HealthConnectClient.getOrCreate(context) }
 
     init {
-        Log.i(
-            TAG,
-            "%%%%%%%%%%%%%%%%%%%%%%%%%%%% HealthConnectClient.isAvailable : ${
-                HealthConnectClient.isAvailable(context)
-            }"
-        )
         HealthConnectAvailability = when {
             HealthConnectClient.isAvailable(context) -> HealthConnectAvailabilityStatus.INSTALLED
             isSupported() -> HealthConnectAvailabilityStatus.NOT_INSTALLED
@@ -70,54 +50,163 @@ class HealthConnectManager(private val context: Context) {
 
 
     @ChecksSdkIntAtLeast(api = MIN_SUPPORTED_SDK)
-    private fun isSupported() =  Build.VERSION.SDK_INT >= MIN_SUPPORTED_SDK
-
+    private fun isSupported() = Build.VERSION.SDK_INT >= MIN_SUPPORTED_SDK
 
 
     /**
      * Reads records.
      */
-    suspend fun readRecords(  recordType : RecordTypeEnum, startTime: Instant, endTime: Instant) : List<RecordModel>{
-        return when (recordType){
-            RecordTypeEnum.Weight -> return readWeightInputs(startTime,endTime )
+    suspend fun readRecords(
+        recordType: RecordTypeEnum,
+        startTime: Instant,
+        endTime: Instant
+    ): List<RecordModel> {
+        return when (recordType) {
+            RecordTypeEnum.Weight -> return readWeightInputs(startTime, endTime)
+            RecordTypeEnum.ACTIVE_ENERGY_BURNED -> return readActiveEnergyBurnedInputs(
+                startTime,
+                endTime
+            )
+            RecordTypeEnum.ACTIVE_CALORIES_BURNED -> return readActiveCaloriesBurnedInputs(
+                startTime,
+                endTime
+            )
             else -> emptyList()
         }
     }
 
-    /** * Reads in existing [Weight] records. */
-   private suspend fun readWeightInputs(start: Instant, end: Instant): List<RecordModel> {
-        println("recordType")
-        val request = ReadRecordsRequest( recordType = Weight::class, timeRangeFilter = TimeRangeFilter.between(start, end))
+    /** * Reads in existing [ActiveCaloriesBurned] records. */
+    private suspend fun readActiveCaloriesBurnedInputs(
+        start: Instant,
+        end: Instant
+    ): List<RecordModel> {
+        val request = ReadRecordsRequest(
+            recordType = ActiveCaloriesBurned::class,
+            timeRangeFilter = TimeRangeFilter.between(start, end)
+        )
         val response = healthConnectClient.readRecords(request)
-        return response.records.map { weight -> RecordModel(weight.weightKg, weight.time, "KG",RecordTypeEnum.Weight)}
+        return response.records.map { record ->
+            RecordModel(
+                record.energyKcal,
+                record.startTime,
+                record.endTime,
+                RecordUnitEnum.CALORIES,
+                RecordTypeEnum.ACTIVE_CALORIES_BURNED
+            )
+        }
     }
 
+    /** * Reads in existing [ActiveEnergyBurned] records. */
+    private suspend fun readActiveEnergyBurnedInputs(
+        start: Instant,
+        end: Instant
+    ): List<RecordModel> {
+        val request = ReadRecordsRequest(
+            recordType = ActiveEnergyBurned::class,
+            timeRangeFilter = TimeRangeFilter.between(start, end)
+        )
+        val response = healthConnectClient.readRecords(request)
+        return response.records.map { record ->
+            RecordModel(
+                record.energyKcal,
+                record.startTime,
+                record.endTime,
+                RecordUnitEnum.CALORIES,
+                RecordTypeEnum.ACTIVE_ENERGY_BURNED
+            )
+        }
+    }
+
+    /** * Reads in existing [Weight] records. */
+    private suspend fun readWeightInputs(start: Instant, end: Instant): List<RecordModel> {
+        val request = ReadRecordsRequest(
+            recordType = Weight::class,
+            timeRangeFilter = TimeRangeFilter.between(start, end)
+        )
+        val response = healthConnectClient.readRecords(request)
+        return response.records.map { record ->
+            RecordModel(
+                record.weightKg,
+                record.time,
+                record.time,
+                RecordUnitEnum.KILOGRAMS,
+                RecordTypeEnum.Weight
+            )
+        }
+    }
 
 
     /**
      * Writes records.
      */
-    suspend fun writeRecords( value : Double, recordType : RecordTypeEnum, createDate: Instant ) : Boolean{
-        return when (recordType){
-            RecordTypeEnum.Weight -> return writeWeightRecord(value,createDate )
+    suspend fun writeRecords(
+        value: Double,
+        recordType: RecordTypeEnum,
+        createDate: Instant
+    ): Boolean {
+        return when (recordType) {
+            RecordTypeEnum.Weight -> return writeWeightRecord(value, createDate)
+            RecordTypeEnum.ACTIVE_ENERGY_BURNED -> return writeActiveEnergyBurnedRecord(
+                value,
+                createDate
+            )
+            RecordTypeEnum.ACTIVE_CALORIES_BURNED -> return writeActiveCaloriesBurnedRecord(
+                value,
+                createDate
+            )
             else -> false
         }
     }
 
+    /** * Writes in [ActiveCaloriesBurned] records. */
+    private suspend fun writeActiveCaloriesBurnedRecord(
+        value: Double,
+        createDate: Instant
+    ): Boolean {
+        val records = listOf(
+            ActiveCaloriesBurned(
+                value,
+                startTime = createDate,
+                endTime = createDate.plusMillis(1),
+                startZoneOffset = null,
+                endZoneOffset = null,
+                metadata = Metadata(UUID.randomUUID().toString())
+            )
+        )
+        return healthConnectClient.insertRecords(records).recordUidsList.isNotEmpty()
+    }
+
+    /** * Writes in [ActiveEnergyBurned] records. */
+    private suspend fun writeActiveEnergyBurnedRecord(value: Double, createDate: Instant): Boolean {
+        val records = listOf(
+            ActiveEnergyBurned(
+                value,
+                startTime = createDate,
+                endTime = createDate.plusMillis(1),
+                startZoneOffset = null,
+                endZoneOffset = null,
+                metadata = Metadata(UUID.randomUUID().toString())
+            )
+        )
+        return healthConnectClient.insertRecords(records).recordUidsList.isNotEmpty()
+    }
+
     /** * Writes in [Weight] records. */
-    suspend fun writeWeightRecord(value : Double,createDate: Instant): Boolean {
-        val records = listOf(Weight(
-            value,
-            time = createDate,
-            zoneOffset = null,
-            metadata = Metadata(UUID.randomUUID().toString())
-        ))
-      return  healthConnectClient.insertRecords(records).recordUidsList.isNotEmpty()
+    private suspend fun writeWeightRecord(value: Double, createDate: Instant): Boolean {
+        val records = listOf(
+            Weight(
+                value,
+                time = createDate,
+                zoneOffset = null,
+                metadata = Metadata(UUID.randomUUID().toString())
+            )
+        )
+        return healthConnectClient.insertRecords(records).recordUidsList.isNotEmpty()
     }
 }
 
 /**
- * Health Connect requires that the underlying Healthcore APK is installed on the device.
+ * Health Connect requires that the underlying Health core APK is installed on the device.
  * [HealthConnectAvailability] represents whether this APK is indeed installed, whether it is not
  * installed but supported on the device, or whether the device is not supported (based on Android
  * version).

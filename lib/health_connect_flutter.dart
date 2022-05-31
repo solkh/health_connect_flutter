@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:health_connect_flutter/health_connect_flutter_method_channel.dart';
+import 'package:health_connect_flutter/models/permission_type_enum.dart';
 import 'package:health_connect_flutter/models/record_model.dart';
 import 'package:health_connect_flutter/models/record_type_enum.dart';
 
@@ -18,9 +19,9 @@ class HealthConnectFlutter {
     }
   }
 
-  Future<bool> requestAuthorization() async {
+  Future<bool> requestPermissions({required List<PermissionTypeEnum> permissionType, required List<RecordTypeEnum> recordType}) async {
     try {
-      bool? result = await MethodChannelHealthConnectFlutter().requestAuthorization();
+      bool? result = await MethodChannelHealthConnectFlutter().requestPermissions(permissionType, recordType);
       return result ?? false;
     } catch (err) {
       debugPrint(err.toString());
@@ -46,6 +47,10 @@ class HealthConnectFlutter {
   Future<bool> writeRecords(double value, RecordTypeEnum recordType, String createDate) async {
     try {
       // TODO : check value validate 0 -> 1000
+      /// Options :
+      /// dataType : double,
+      /// variable : startDate,endDate
+      ///
       bool? result = await MethodChannelHealthConnectFlutter().writeRecords(value, recordType, createDate);
       return result ?? false;
     } catch (err) {

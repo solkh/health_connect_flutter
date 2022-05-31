@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 
 import 'package:health_connect_flutter/health_connect_flutter.dart';
+import 'package:health_connect_flutter/models/permission_type_enum.dart';
 import 'package:health_connect_flutter/models/record_model.dart';
 import 'package:health_connect_flutter/models/record_type_enum.dart';
 
@@ -26,12 +27,12 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    loadWeightRecords();
   }
 
   Future<void> loadWeightRecords() async {
     try {
-      recodeList = await _healthConnectFlutterPlugin.readRecords(types: [RecordTypeEnum.weight], startDate: DateTime(1990).toIso8601String());
+      recodeList =
+          await _healthConnectFlutterPlugin.readRecords(types: [RecordTypeEnum.ACTIVE_ENERGY_BURNED], startDate: DateTime(1990).toIso8601String());
       setState(() {});
     } catch (err) {
       log(err.toString());
@@ -48,7 +49,8 @@ class _MyAppState extends State<MyApp> {
         body: Column(
           children: [
             const SizedBox(height: 24),
-            _writeWeight(),
+            _requistPermission(),
+            _writeData(),
             _recordList(),
           ],
         ),
@@ -56,7 +58,25 @@ class _MyAppState extends State<MyApp> {
     );
   }
 
-  Widget _writeWeight() {
+  Widget _requistPermission() {
+    return ElevatedButton(
+      child: const Text("Request Permissions"),
+      onPressed: () async {
+        try {
+          var result = await _healthConnectFlutterPlugin.requestPermissions(
+            permissionType: [PermissionTypeEnum.READ_WRITE],
+            recordType: [RecordTypeEnum.ACTIVE_ENERGY_BURNED],
+          );
+
+          log(result.toString());
+        } catch (err) {
+          log(err.toString());
+        }
+      },
+    );
+  }
+
+  Widget _writeData() {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Row(
@@ -74,7 +94,8 @@ class _MyAppState extends State<MyApp> {
               try {
                 var value = double.tryParse(_weightTextEditController.text);
                 if (value != null) {
-                  var result = await _healthConnectFlutterPlugin.writeRecords(value, RecordTypeEnum.weight, DateTime.now().toIso8601String());
+                  var result =
+                      await _healthConnectFlutterPlugin.writeRecords(value, RecordTypeEnum.ACTIVE_ENERGY_BURNED, DateTime.now().toIso8601String());
 
                   if (!mounted) return;
                   if (result) {
@@ -105,7 +126,7 @@ class _MyAppState extends State<MyApp> {
           return Card(
             child: ListTile(
               title: Text('${item.value} ${item.unit}'),
-              trailing: Text(item.date ?? ''),
+              trailing: Text(item.startDate ?? ''),
             ),
           );
         },

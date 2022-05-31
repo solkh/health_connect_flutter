@@ -3,12 +3,7 @@ package com.solgr.health_connect_flutter
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
-import android.util.Log
 import androidx.annotation.NonNull
-import androidx.health.connect.client.permission.Permission
-import androidx.health.connect.client.records.Weight
-import androidx.health.connect.client.request.ReadRecordsRequest
-import androidx.health.connect.client.time.TimeRangeFilter
 import androidx.lifecycle.lifecycleScope
 import com.solgr.health_connect_flutter.models.*
 import io.flutter.embedding.android.FlutterActivity
@@ -41,10 +36,6 @@ class HealthConnectFlutterPlugin : FlutterPlugin, MethodCallHandler, FlutterActi
     private lateinit var mActivity: Activity
     private var mResult: Result? = null
 
-    private val permissions = setOf(
-        Permission.createReadPermission(Weight::class),
-        Permission.createWritePermission(Weight::class),
-    )
 
     override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
         GeneratedPluginRegister.registerGeneratedPlugins(flutterEngine)
@@ -67,7 +58,7 @@ class HealthConnectFlutterPlugin : FlutterPlugin, MethodCallHandler, FlutterActi
                 getPlatformVersionName -> result.success(android.os.Build.VERSION.RELEASE)
                 getPlatformVersionCode -> result.success(android.os.Build.VERSION.SDK_INT)
                 checkHealthConnectAvailability -> checkHealthConnectAvailability(result)
-                requestAuthorization -> requestAuthorizationFunction(result)
+                requestPermissions -> requestPermissionsFunction(call, result)
                 readRecords -> readRecords(call, result)
                 writeRecords -> writeRecords(call, result)
                 else -> result.notImplemented()
@@ -76,45 +67,91 @@ class HealthConnectFlutterPlugin : FlutterPlugin, MethodCallHandler, FlutterActi
     }
 
     private suspend fun readRecords(@NonNull call: MethodCall, @NonNull result: Result) {
-        val resultList = emptyList<RecordModel>().toMutableList()
-        val recordTypes = call.argument<List<Int>>("recordTypes")
-        val startIsoDate = call.argument<String>("startDate")
-        val endIsoDate = call.argument<String>("endDate")
+        try {
+            val resultList = emptyList<RecordModel>().toMutableList()
+            val recordTypes = call.argument<List<Int>>("recordTypes")
+            val startIsoDate = call.argument<String>("startDate")
+            val endIsoDate = call.argument<String>("endDate")
 
-        val startOfDay = ZonedDateTime.now().truncatedTo(ChronoUnit.DAYS)
-        val startDateInstant =
-            if (startIsoDate == null) startOfDay.toInstant() else LocalDateTime.parse(startIsoDate)
-                .atZone(ZoneId.systemDefault()).toInstant()
-        val endDateInstant =
-            if (endIsoDate == null) Instant.now() else LocalDateTime.parse(endIsoDate)
-                .atZone(ZoneId.systemDefault()).toInstant()
 
-        if (recordTypes != null) {
-            for (recordType in recordTypes) {
-                resultList +=  healthConnectManager.readRecords(RecordTypeEnum.values()[recordType],startDateInstant,endDateInstant)
+            val startOfDay = ZonedDateTime.now().truncatedTo(ChronoUnit.DAYS)
+            val startDateInstant =
+                if (startIsoDate == null) startOfDay.toInstant() else LocalDateTime.parse(
+                    startIsoDate
+                )
+                    .atZone(ZoneId.systemDefault()).toInstant()
+            val endDateInstant =
+                if (endIsoDate == null) Instant.now() else LocalDateTime.parse(endIsoDate)
+                    .atZone(ZoneId.systemDefault()).toInstant()
+
+            if (recordTypes != null) {
+                if (!healthConnectManager.hasAllPermissions(
+                        PermissionHelper().permissionsParser(
+                            mutableListOf(PermissionTypeEnum.READ.ordinal),
+                            recordTypes
+                        )
+                    )
+                ) {
+                    result.error(
+                        "401",
+                        "SecurityException",
+                        "request read Record with unpermitted access"
+                    )
+                    return
+                }
+                for (recordType in recordTypes) {
+                    resultList += healthConnectManager.readRecords(
+                        RecordTypeEnum.values()[recordType],
+                        startDateInstant,
+                        endDateInstant
+                    )
+                }
             }
+            result.success(resultList.map { element -> element.toMap() })
+        } catch (err: Exception) {
+            result.error("500", err.localizedMessage, "")
         }
-        result.success(resultList.map { element -> element.toMap() })
+
     }
 
     private suspend fun writeRecords(@NonNull call: MethodCall, @NonNull result: Result) {
-        val value = call.argument<Double>("value")
-        val recordType = call.argument<Int>("recordType")
-        val isoCreateDate = call.argument<String>("createDate")
+        try {
+            val value = call.argument<Double>("value")
+            val recordType = call.argument<Int>("recordType")
+            val isoCreateDate = call.argument<String>("createDate")
 
-        val createDateInstant =
-            if (isoCreateDate == null) Instant.now() else LocalDateTime.parse(isoCreateDate)
-                .atZone(ZoneId.systemDefault()).toInstant()
-        if(value != null && recordType != null) {
-            return result.success(
-                healthConnectManager.writeRecords(
-                    value,
-                    RecordTypeEnum.values()[recordType],
-                    createDateInstant
+            val createDateInstant =
+                if (isoCreateDate == null) Instant.now() else LocalDateTime.parse(isoCreateDate)
+                    .atZone(ZoneId.systemDefault()).toInstant()
+            if (value != null && recordType != null) {
+                if (!healthConnectManager.hasAllPermissions(
+                        PermissionHelper().permissionsParser(
+                            mutableListOf(PermissionTypeEnum.WRITE.ordinal),
+                            mutableListOf(recordType)
+                        )
+                    )
+                ) {
+                    result.error(
+                        "401",
+                        "SecurityException",
+                        "request write Record with unpermitted access"
+                    )
+                    return
+                }
+
+                return result.success(
+                    healthConnectManager.writeRecords(
+                        value,
+                        RecordTypeEnum.values()[recordType],
+                        createDateInstant
+                    )
                 )
-            )
+            }
+            return result.success(false)
+        } catch (err: Exception) {
+            result.error("500", err.localizedMessage, "")
         }
-        return result.success(false)
+
     }
 
     private fun checkHealthConnectAvailability(@NonNull result: Result): Boolean {
@@ -134,14 +171,22 @@ class HealthConnectFlutterPlugin : FlutterPlugin, MethodCallHandler, FlutterActi
         return false
     }
 
-    private suspend fun requestAuthorizationFunction(@NonNull result: Result) {
-        val permissionsGranted = healthConnectManager.hasAllPermissions(permissions)
+    private suspend fun requestPermissionsFunction(
+        @NonNull call: MethodCall,
+        @NonNull result: Result
+    ) {
+        val recordTypes = call.argument<List<Int>>("recordTypes")
+        val permissionTypes = call.argument<List<Int>>("permissionTypes")
+        val permissionsList = PermissionHelper().permissionsParser(permissionTypes!!, recordTypes!!)
+        val permissionsGranted = healthConnectManager.hasAllPermissions(permissionsList)
         if (!permissionsGranted) {
             mResult = result
             // request permissions
             val intent = Intent(mActivity, AskPermissionActivity::class.java)
+            intent.putExtra("recordTypes", recordTypes.toIntArray())
+            intent.putExtra("permissionTypes", permissionTypes.toIntArray())
             mActivity.startActivityForResult(intent, permissionRequestCode)
-//            result.error("401", "permissions not granted", "request permissions needed")
+            //result.error("401", "permissions not granted", "request permissions needed")
         } else {
             return result.success(true)
         }
@@ -149,11 +194,12 @@ class HealthConnectFlutterPlugin : FlutterPlugin, MethodCallHandler, FlutterActi
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (resultCode == RESULT_OK) {
+        if (resultCode == RESULT_OK && permissionRequestCode == requestCode) {
             var permissionResult = data?.getBooleanExtra(PermissionResult, false)
             if (permissionResult == null) permissionResult = false
             mResult!!.success(permissionResult)
         }
+        mResult!!.success(false)
     }
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
@@ -168,4 +214,6 @@ class HealthConnectFlutterPlugin : FlutterPlugin, MethodCallHandler, FlutterActi
 
     override fun onDetachedFromActivity() {
     }
+
+
 }

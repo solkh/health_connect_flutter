@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:health_connect_flutter/models/permission_type_enum.dart';
 import 'package:health_connect_flutter/models/record_type_enum.dart';
 
 import 'health_connect_flutter_platform_interface.dart';
@@ -21,8 +22,12 @@ class MethodChannelHealthConnectFlutter extends HealthConnectFlutterPlatform {
   }
 
   @override
-  Future<bool?> requestAuthorization() async {
-    return await methodChannel.invokeMethod<bool>('requestAuthorization');
+  Future<bool?> requestPermissions(List<PermissionTypeEnum> permissionType, List<RecordTypeEnum> recordType) async {
+    Map<String, dynamic> arguments = {
+      "permissionTypes": permissionType.map((e) => e.index).toList(),
+      "recordTypes": recordType.map((e) => e.index).toList(),
+    };
+    return await methodChannel.invokeMethod<bool>('requestPermissions', arguments);
   }
 
   @override

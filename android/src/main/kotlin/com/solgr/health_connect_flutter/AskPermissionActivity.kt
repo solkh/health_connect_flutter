@@ -6,27 +6,25 @@ import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.health.connect.client.permission.HealthDataRequestPermissions
 import androidx.health.connect.client.permission.Permission
-import androidx.health.connect.client.records.Weight
 
 
 const val PermissionResult = "PermissionResult"
 
 class AskPermissionActivity : AppCompatActivity() {
-
-    private val permissions = setOf(
-        Permission.createReadPermission(Weight::class),
-        Permission.createWritePermission(Weight::class),
-    )
+    private var permissionList = emptySet<Permission>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        requestPermissions.launch(permissions)
+        val recordTypes = intent.getIntArrayExtra("recordTypes")!!.toList()
+        val permissionTypes = intent.getIntArrayExtra("permissionTypes")!!.toList()
+        permissionList = PermissionHelper().permissionsParser(permissionTypes, recordTypes)
+        requestPermissions.launch(permissionList)
     }
 
     // Create the permissions launcher.
     private val requestPermissions =
         registerForActivityResult(HealthDataRequestPermissions()) { granted ->
-            if (granted.containsAll(permissions)) {
+            if (granted.containsAll(permissionList)) {
                 // Permissions successfully granted
                 Log.i(TAG, "requestPermissions : Permissions successfully granted ")
                 returnToFlutterView(true)
