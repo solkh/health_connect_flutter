@@ -1,21 +1,23 @@
 package com.solgr.health_connect_flutter.models
 
 import java.time.Instant
+import androidx.health.connect.client.metadata.Metadata
 
 
 class RecordModel(
-    val value: Double,
-    val startDate: Instant,
-    val endDate: Instant,
+    val value: String,
+    val startTime: Instant,
+    val endTime: Instant,
     val unit: RecordUnitEnum,
     val recordTypeEnum: RecordTypeEnum,
+    val metadata : Metadata,
 ) {
 
     fun toMap(): Map<String, Any?> {
         return mapOf(
             "value" to value,
-            "startDate" to startDate.toString(),
-            "endDate" to endDate.toString(),
+            "startTime" to startTime.toString(),
+            "endTime" to endTime.toString(),
             "unit" to unit.ordinal,
             "recordType" to recordTypeEnum.ordinal,
         )

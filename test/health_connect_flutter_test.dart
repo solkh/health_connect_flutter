@@ -21,7 +21,7 @@ class MockHealthConnectFlutterPlatform with MockPlatformInterfaceMixin implement
   Future<List<Map<String, dynamic>>?> readRecords(List<RecordTypeEnum> recordTypes, String startDate, String endDate) => Future.value([]);
 
   @override
-  Future<bool?> writeRecords(double value, RecordTypeEnum recordType, String createDate) => Future.value(false);
+  Future<bool?> writeRecords(String value, RecordTypeEnum recordType, String startTime, String endTime) => Future.value(false);
 }
 
 void main() {

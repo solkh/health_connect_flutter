@@ -18,3 +18,9 @@ enum RecordUnitEnum {
   UNKNOWN_UNIT,
   LITER,
 }
+
+extension ParseToString on RecordUnitEnum {
+  String get value {
+    return toString().split('.').last;
+  }
+}

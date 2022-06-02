@@ -17,4 +17,5 @@ enum class RecordUnitEnum {
     SIEMENS,
     UNKNOWN_UNIT,
     LITER,
+    STRING_TYPE,
 }

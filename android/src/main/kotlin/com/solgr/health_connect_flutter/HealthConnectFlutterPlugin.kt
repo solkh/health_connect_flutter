@@ -65,23 +65,33 @@ class HealthConnectFlutterPlugin : FlutterPlugin, MethodCallHandler, FlutterActi
             }
         }
     }
+//
+//    suspend fun<T : Record> readRecords2 (request : ReadRecordsRequest2<T>): ReadRecordsResponse<T> {
+//        return healthConnectManager.healthConnectClient.readRecords(request)
+//    }
 
     private suspend fun readRecords(@NonNull call: MethodCall, @NonNull result: Result) {
         try {
+
+            var requestParams = call.argument<String>("requestParams")
+
+//            val mapper = jacksonObjectMapper()
+//            val obj = Json.decodeFromString<ReadRecordsRequest<Class.forName("Weight") as Class<Record>>>(requestParams)
+            //val genres = mapper.readValue<ReadRecordsRequest<Class.forName("Weight") as Class<Weight>>>(requestParams)
             val resultList = emptyList<RecordModel>().toMutableList()
             val recordTypes = call.argument<List<Int>>("recordTypes")
-            val startIsoDate = call.argument<String>("startDate")
-            val endIsoDate = call.argument<String>("endDate")
+            val isoStartTime = call.argument<String>("startTime")
+            val isoEndTime = call.argument<String>("endTime")
 
 
             val startOfDay = ZonedDateTime.now().truncatedTo(ChronoUnit.DAYS)
             val startDateInstant =
-                if (startIsoDate == null) startOfDay.toInstant() else LocalDateTime.parse(
-                    startIsoDate
+                if (isoStartTime == null) startOfDay.toInstant() else LocalDateTime.parse(
+                    isoStartTime
                 )
                     .atZone(ZoneId.systemDefault()).toInstant()
             val endDateInstant =
-                if (endIsoDate == null) Instant.now() else LocalDateTime.parse(endIsoDate)
+                if (isoEndTime == null) Instant.now() else LocalDateTime.parse(isoEndTime)
                     .atZone(ZoneId.systemDefault()).toInstant()
 
             if (recordTypes != null) {
@@ -116,12 +126,16 @@ class HealthConnectFlutterPlugin : FlutterPlugin, MethodCallHandler, FlutterActi
 
     private suspend fun writeRecords(@NonNull call: MethodCall, @NonNull result: Result) {
         try {
-            val value = call.argument<Double>("value")
+            val value = call.argument<String>("value")
             val recordType = call.argument<Int>("recordType")
-            val isoCreateDate = call.argument<String>("createDate")
+            val isoStartTime = call.argument<String>("startTime")
+            val isoEndTime = call.argument<String>("endTime")
 
-            val createDateInstant =
-                if (isoCreateDate == null) Instant.now() else LocalDateTime.parse(isoCreateDate)
+            val startTimeInstant =
+                if (isoStartTime == null) Instant.now() else LocalDateTime.parse(isoStartTime)
+                    .atZone(ZoneId.systemDefault()).toInstant()
+            val endTimeInstant =
+                if (isoEndTime == null) Instant.now() else LocalDateTime.parse(isoEndTime)
                     .atZone(ZoneId.systemDefault()).toInstant()
             if (value != null && recordType != null) {
                 if (!healthConnectManager.hasAllPermissions(
@@ -134,7 +148,7 @@ class HealthConnectFlutterPlugin : FlutterPlugin, MethodCallHandler, FlutterActi
                     result.error(
                         "401",
                         "SecurityException",
-                        "request write Record with unpermitted access"
+                        "request write ${RecordTypeEnum.values()[recordType]} Record with unpermitted access"
                     )
                     return
                 }
@@ -143,7 +157,7 @@ class HealthConnectFlutterPlugin : FlutterPlugin, MethodCallHandler, FlutterActi
                     healthConnectManager.writeRecords(
                         value,
                         RecordTypeEnum.values()[recordType],
-                        createDateInstant
+                        startTimeInstant, endTimeInstant,
                     )
                 )
             }

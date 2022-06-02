@@ -36,21 +36,22 @@ class MethodChannelHealthConnectFlutter extends HealthConnectFlutterPlatform {
   }
 
   @override
-  Future<List?> readRecords(List<RecordTypeEnum> recordTypes, String startDate, String endDate) async {
+  Future<List?> readRecords(List<RecordTypeEnum> recordTypes, String startTime, String endTime) async {
     Map<String, dynamic> arguments = {
       "recordTypes": recordTypes.map((e) => e.index).toList(),
-      "startDate": startDate,
-      "endDate": endDate,
+      "startTime": startTime,
+      "endTime": endTime,
     };
     return await methodChannel.invokeMethod<List?>('readRecords', arguments);
   }
 
   @override
-  Future<bool?> writeRecords(double value, RecordTypeEnum recordType, String createDate) async {
+  Future<bool?> writeRecords(String value, RecordTypeEnum recordType, String startTime, String endTime) async {
     Map<String, dynamic> arguments = {
       "value": value,
       "recordType": recordType.index,
-      "createDate": createDate,
+      "startTime": startTime,
+      "endTime": endTime,
     };
     return await methodChannel.invokeMethod<bool>('writeRecords', arguments);
   }

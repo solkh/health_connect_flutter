@@ -30,6 +30,6 @@ abstract class HealthConnectFlutterPlatform extends PlatformInterface {
 
   Future<bool?> requestPermissions(List<PermissionTypeEnum> permissionType, List<RecordTypeEnum> recordType);
   Future<bool?> checkHealthConnectAvailability();
-  Future<List?> readRecords(List<RecordTypeEnum> recordTypes, String startDate, String endDate);
-  Future<bool?> writeRecords(double value, RecordTypeEnum recordType, String createDate);
+  Future<List?> readRecords(List<RecordTypeEnum> recordTypes, String startTime, String endTime);
+  Future<bool?> writeRecords(String value, RecordTypeEnum recordType, String startTime, String endTime);
 }

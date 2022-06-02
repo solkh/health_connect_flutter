@@ -29,14 +29,14 @@ class HealthConnectFlutter {
     return false;
   }
 
-  Future<List<RecordModel>> readRecords({required List<RecordTypeEnum> types, String? startDate, String? endDate}) async {
-    if (startDate == null) {
+  Future<List<RecordModel>> readRecords({required List<RecordTypeEnum> types, String? startTime, String? endTime}) async {
+    if (startTime == null) {
       var now = DateTime.now();
-      startDate ??= DateTime(now.year, now.month, now.day).toIso8601String();
+      startTime ??= DateTime(now.year, now.month, now.day).toIso8601String();
     }
-    endDate ??= DateTime.now().toIso8601String();
+    endTime ??= DateTime.now().toIso8601String();
     try {
-      List? result = await MethodChannelHealthConnectFlutter().readRecords(types, startDate, endDate);
+      List? result = await MethodChannelHealthConnectFlutter().readRecords(types, startTime, endTime);
       return result?.map((e) => RecordModel.fromMap(Map.castFrom(e))).toList() ?? [];
     } catch (err) {
       debugPrint(err.toString());
@@ -44,14 +44,14 @@ class HealthConnectFlutter {
     return [];
   }
 
-  Future<bool> writeRecords(double value, RecordTypeEnum recordType, String createDate) async {
+  Future<bool> writeRecords(String value, RecordTypeEnum recordType, {String? startTime, String? endTime}) async {
     try {
-      // TODO : check value validate 0 -> 1000
-      /// Options :
-      /// dataType : double,
-      /// variable : startDate,endDate
-      ///
-      bool? result = await MethodChannelHealthConnectFlutter().writeRecords(value, recordType, createDate);
+      if (startTime == null) {
+        var now = DateTime.now();
+        startTime ??= DateTime(now.year, now.month, now.day).toIso8601String();
+      }
+      endTime ??= DateTime.now().toIso8601String();
+      bool? result = await MethodChannelHealthConnectFlutter().writeRecords(value, recordType, startTime, endTime);
       return result ?? false;
     } catch (err) {
       debugPrint(err.toString());

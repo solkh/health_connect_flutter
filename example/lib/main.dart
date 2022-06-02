@@ -7,6 +7,7 @@ import 'package:health_connect_flutter/health_connect_flutter.dart';
 import 'package:health_connect_flutter/models/permission_type_enum.dart';
 import 'package:health_connect_flutter/models/record_model.dart';
 import 'package:health_connect_flutter/models/record_type_enum.dart';
+import 'package:health_connect_flutter/models/record_unit.dart';
 
 void main() {
   runApp(const MyApp());
@@ -32,7 +33,7 @@ class _MyAppState extends State<MyApp> {
   Future<void> loadWeightRecords() async {
     try {
       recodeList =
-          await _healthConnectFlutterPlugin.readRecords(types: [RecordTypeEnum.ACTIVE_ENERGY_BURNED], startDate: DateTime(1990).toIso8601String());
+          await _healthConnectFlutterPlugin.readRecords(types: [RecordTypeEnum.ACTIVE_ENERGY_BURNED], startTime: DateTime(1990).toIso8601String());
       setState(() {});
     } catch (err) {
       log(err.toString());
@@ -94,8 +95,8 @@ class _MyAppState extends State<MyApp> {
               try {
                 var value = double.tryParse(_weightTextEditController.text);
                 if (value != null) {
-                  var result =
-                      await _healthConnectFlutterPlugin.writeRecords(value, RecordTypeEnum.ACTIVE_ENERGY_BURNED, DateTime.now().toIso8601String());
+                  var result = await _healthConnectFlutterPlugin.writeRecords(value.toString(), RecordTypeEnum.ACTIVE_ENERGY_BURNED,
+                      startTime: DateTime.now().toIso8601String());
 
                   if (!mounted) return;
                   if (result) {
@@ -125,8 +126,8 @@ class _MyAppState extends State<MyApp> {
           RecordModel item = recodeList[index];
           return Card(
             child: ListTile(
-              title: Text('${item.value} ${item.unit}'),
-              trailing: Text(item.startDate ?? ''),
+              title: Text('${item.value} ${item.unit?.value}'),
+              trailing: Text(item.startTime ?? ''),
             ),
           );
         },

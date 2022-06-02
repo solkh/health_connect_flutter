@@ -4,52 +4,58 @@ import 'package:health_connect_flutter/models/record_type_enum.dart';
 import 'package:health_connect_flutter/models/record_unit.dart';
 
 class RecordModel {
-  double? value;
-  String? startDate;
-  String? endDate;
+  String? value;
+  String? startTime;
+  String? endTime;
   RecordUnitEnum? unit;
   RecordTypeEnum? recordType;
+  String? metadata;
   RecordModel({
     this.value,
-    this.startDate,
-    this.endDate,
+    this.startTime,
+    this.endTime,
     this.unit,
     this.recordType,
+    this.metadata,
   });
 
   RecordModel copyWith({
-    double? value,
-    String? startDate,
-    String? endDate,
+    String? value,
+    String? startTime,
+    String? endTime,
     RecordUnitEnum? unit,
     RecordTypeEnum? recordType,
+    String? metadata,
   }) {
     return RecordModel(
       value: value ?? this.value,
-      startDate: startDate ?? this.startDate,
-      endDate: endDate ?? this.endDate,
+      startTime: startTime ?? this.startTime,
+      endTime: endTime ?? this.endTime,
       unit: unit ?? this.unit,
       recordType: recordType ?? this.recordType,
+      metadata: metadata ?? this.metadata,
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
       'value': value,
-      'startDate': startDate,
-      'endDate': endDate,
+      'startTime': startTime,
+      'endTime': endTime,
       'unit': unit?.index,
       'recordType': recordType?.index,
+      'metadata': metadata,
     };
   }
 
   factory RecordModel.fromMap(Map<String, dynamic> map) {
     return RecordModel(
-      value: map['value']?.toDouble(),
-      startDate: map['startDate'],
-      endDate: map['endDate'],
+      value: map['value'],
+      startTime: map['startTime'],
+      endTime: map['endTime'],
       unit: map['unit'] != null ? RecordUnitEnum.values[map['unit']] : null,
       recordType: map['recordType'] != null ? RecordTypeEnum.values[map['recordType']] : null,
+      metadata: map['metadata'],
     );
   }
 
@@ -59,7 +65,7 @@ class RecordModel {
 
   @override
   String toString() {
-    return 'RecordModel(value: $value, startDate: $startDate, endDate: $endDate, unit: $unit, recordType: $recordType)';
+    return 'RecordModel(value: $value, startTime: $startTime, endTime: $endTime, unit: $unit, recordType: $recordType, metadata: $metadata)';
   }
 
   @override
@@ -68,14 +74,15 @@ class RecordModel {
 
     return other is RecordModel &&
         other.value == value &&
-        other.startDate == startDate &&
-        other.endDate == endDate &&
+        other.startTime == startTime &&
+        other.endTime == endTime &&
         other.unit == unit &&
-        other.recordType == recordType;
+        other.recordType == recordType &&
+        other.metadata == metadata;
   }
 
   @override
   int get hashCode {
-    return value.hashCode ^ startDate.hashCode ^ endDate.hashCode ^ unit.hashCode ^ recordType.hashCode;
+    return value.hashCode ^ startTime.hashCode ^ endTime.hashCode ^ unit.hashCode ^ recordType.hashCode ^ metadata.hashCode;
   }
 }
