@@ -19,6 +19,10 @@ class HealthConnectFlutter {
     }
   }
 
+  Future<bool?> checkHealthConnectAvailability() async {
+    return await MethodChannelHealthConnectFlutter().checkHealthConnectAvailability();
+  }
+
   Future<bool> requestPermissions({required List<PermissionTypeEnum> permissionType, required List<RecordTypeEnum> recordType}) async {
     try {
       bool? result = await MethodChannelHealthConnectFlutter().requestPermissions(permissionType, recordType);
