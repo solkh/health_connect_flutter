@@ -3,6 +3,7 @@ package com.solgr.health_connect_flutter
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import androidx.annotation.NonNull
 import androidx.lifecycle.lifecycleScope
 import com.solgr.health_connect_flutter.models.*
@@ -163,7 +164,7 @@ class HealthConnectFlutterPlugin : FlutterPlugin, MethodCallHandler, FlutterActi
             }
             return result.success(false)
         } catch (err: Exception) {
-            result.error("500", err.localizedMessage, "")
+            result.error("500", err.toString(), "")
         }
 
     }
@@ -192,6 +193,9 @@ class HealthConnectFlutterPlugin : FlutterPlugin, MethodCallHandler, FlutterActi
         val recordTypes = call.argument<List<Int>>("recordTypes")
         val permissionTypes = call.argument<List<Int>>("permissionTypes")
         val permissionsList = PermissionHelper().permissionsParser(permissionTypes!!, recordTypes!!)
+        Log.e(TAG, "permissionTypes: ${permissionTypes.toString()}", )
+        Log.e(TAG, "recordTypes: ${recordTypes.toString()}", )
+        Log.e(TAG, "permissionsList: ${permissionsList.toString()}", )
         val permissionsGranted = healthConnectManager.hasAllPermissions(permissionsList)
         if (!permissionsGranted) {
             mResult = result

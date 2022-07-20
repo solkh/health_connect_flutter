@@ -24,6 +24,7 @@ class _MyAppState extends State<MyApp> {
   final _healthConnectFlutterPlugin = HealthConnectFlutter();
   final TextEditingController _weightTextEditController = TextEditingController();
   List<RecordModel> recodeList = [];
+  final RecordTypeEnum mainRecordType = RecordTypeEnum.STEPS;
 
   @override
   void initState() {
@@ -32,8 +33,7 @@ class _MyAppState extends State<MyApp> {
 
   Future<void> loadWeightRecords() async {
     try {
-      recodeList =
-          await _healthConnectFlutterPlugin.readRecords(types: [RecordTypeEnum.ACTIVE_ENERGY_BURNED], startTime: DateTime(1990).toIso8601String());
+      recodeList = await _healthConnectFlutterPlugin.readRecords(types: [mainRecordType], startTime: DateTime(1990).toIso8601String());
       setState(() {});
     } catch (err) {
       log(err.toString());
@@ -64,9 +64,10 @@ class _MyAppState extends State<MyApp> {
       child: const Text("Request Permissions"),
       onPressed: () async {
         try {
+          var recordTypeList = [mainRecordType];
           var result = await _healthConnectFlutterPlugin.requestPermissions(
-            permissionType: [PermissionTypeEnum.READ_WRITE],
-            recordType: [RecordTypeEnum.ACTIVE_ENERGY_BURNED],
+            permissionType: List.generate(recordTypeList.length, (index) => PermissionTypeEnum.READ_WRITE),
+            recordType: recordTypeList,
           );
 
           log(result.toString());
@@ -95,15 +96,15 @@ class _MyAppState extends State<MyApp> {
               try {
                 var value = double.tryParse(_weightTextEditController.text);
                 if (value != null) {
-                  var result = await _healthConnectFlutterPlugin.writeRecords(value.toString(), RecordTypeEnum.ACTIVE_ENERGY_BURNED,
-                      startTime: DateTime.now().toIso8601String());
+                  var result =
+                      await _healthConnectFlutterPlugin.writeRecords(value.toString(), mainRecordType, startTime: DateTime.now().toIso8601String());
 
                   if (!mounted) return;
                   if (result) {
-                    log('Write Weight successfully');
+                    log('Write $mainRecordType successfully');
                     loadWeightRecords();
                   } else {
-                    log('Write Weight Faild');
+                    log('Write $mainRecordType Faild');
                   }
                 }
               } catch (err) {

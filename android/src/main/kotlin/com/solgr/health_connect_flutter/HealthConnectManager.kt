@@ -2,6 +2,7 @@ package com.solgr.health_connect_flutter
 
 import android.content.Context
 import android.os.Build
+import android.util.Log
 import androidx.annotation.ChecksSdkIntAtLeast
 import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.PermissionController
@@ -393,7 +394,7 @@ class HealthConnectManager(private val context: Context) {
         checkParseDoubleValue( value   )
         val records = listOf(
             Steps(
-                value.toLong() ,
+                value.toDouble().toLong() ,
                 startTime = startTime,
                 endTime = endTime.plusMillis(1),
                 startZoneOffset = null,
@@ -418,10 +419,10 @@ class HealthConnectManager(private val context: Context) {
     }
     /** * Writes in [BodyFat] records. */
     private suspend fun writeBodyFat(value: String, startTime: Instant,endTime : Instant): Boolean {
-        checkParseDoubleValue( value   )
+        checkParseDoubleValue(value)
         val records = listOf(
             BodyFat(
-                value.toInt() ,
+                value.toDouble().toInt() ,
                 time = startTime,
                 zoneOffset = null,
                 metadata = Metadata(UUID.randomUUID().toString())
