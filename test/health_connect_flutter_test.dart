@@ -22,6 +22,9 @@ class MockHealthConnectFlutterPlatform with MockPlatformInterfaceMixin implement
 
   @override
   Future<bool?> writeRecords(String value, RecordTypeEnum recordType, String startTime, String endTime) => Future.value(false);
+
+  @override
+  Future<int?> getTotalSteps(String startTime, String endTime) => Future.value(0);
 }
 
 void main() {

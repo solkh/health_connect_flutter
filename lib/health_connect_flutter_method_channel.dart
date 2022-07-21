@@ -55,4 +55,13 @@ class MethodChannelHealthConnectFlutter extends HealthConnectFlutterPlatform {
     };
     return await methodChannel.invokeMethod<bool>('writeRecords', arguments);
   }
+
+  @override
+  Future<int?> getTotalSteps(String startTime, String endTime) async {
+    Map<String, dynamic> arguments = {
+      "startTime": startTime,
+      "endTime": endTime,
+    };
+    return await methodChannel.invokeMethod<int>('getTotalSteps', arguments);
+  }
 }

@@ -62,10 +62,52 @@ class HealthConnectFlutterPlugin : FlutterPlugin, MethodCallHandler, FlutterActi
                 requestPermissions -> requestPermissionsFunction(call, result)
                 readRecords -> readRecords(call, result)
                 writeRecords -> writeRecords(call, result)
+                getTotalSteps -> getTotalSteps(call,result)
                 else -> result.notImplemented()
             }
         }
     }
+
+
+    private suspend fun getTotalSteps(@NonNull call: MethodCall, @NonNull result: Result) {
+        try {
+            val isoStartTime = call.argument<String>("startTime")
+            val isoEndTime = call.argument<String>("endTime")
+
+            val startOfDay = ZonedDateTime.now().truncatedTo(ChronoUnit.DAYS)
+            val startDateInstant =
+                if (isoStartTime == null) startOfDay.toInstant() else LocalDateTime.parse(
+                    isoStartTime
+                )
+                    .atZone(ZoneId.systemDefault()).toInstant()
+            val endDateInstant =
+                if (isoEndTime == null) Instant.now() else LocalDateTime.parse(isoEndTime)
+                    .atZone(ZoneId.systemDefault()).toInstant()
+
+            if (!healthConnectManager.hasAllPermissions(
+                    PermissionHelper().permissionsParser(
+                        mutableListOf(PermissionTypeEnum.READ.ordinal),
+                        listOf(RecordTypeEnum.STEPS.ordinal)
+                    )
+                )
+            ) {
+                result.error(
+                    "401",
+                    "SecurityException",
+                    "request read Record with unpermitted access"
+                )
+                return
+            }
+
+            val steps = healthConnectManager.getTotalSteps( startDateInstant,endDateInstant)
+            result.success(steps)
+
+        } catch (err: Exception) {
+            result.error("500", err.localizedMessage, "")
+        }
+
+    }
+
 //
 //    suspend fun<T : Record> readRecords2 (request : ReadRecordsRequest2<T>): ReadRecordsResponse<T> {
 //        return healthConnectManager.healthConnectClient.readRecords(request)

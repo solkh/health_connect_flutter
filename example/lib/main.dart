@@ -51,6 +51,7 @@ class _MyAppState extends State<MyApp> {
           children: [
             const SizedBox(height: 24),
             _requistPermission(),
+            _getTotalSteps(),
             _writeData(),
             _recordList(),
           ],
@@ -75,6 +76,24 @@ class _MyAppState extends State<MyApp> {
           log(err.toString());
         }
       },
+    );
+  }
+
+  Widget _getTotalSteps() {
+    return Row(
+      children: [
+        ElevatedButton(
+          child: const Text(" get Total Steps"),
+          onPressed: () async {
+            try {
+              var result = await _healthConnectFlutterPlugin.getTotalSteps(startTime: DateTime(1990).toIso8601String());
+              log(result.toString());
+            } catch (err) {
+              log(err.toString());
+            }
+          },
+        ),
+      ],
     );
   }
 
