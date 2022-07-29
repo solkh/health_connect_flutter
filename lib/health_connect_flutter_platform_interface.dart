@@ -33,4 +33,5 @@ abstract class HealthConnectFlutterPlatform extends PlatformInterface {
   Future<List?> readRecords(List<RecordTypeEnum> recordTypes, String startTime, String endTime);
   Future<bool?> writeRecords(String value, RecordTypeEnum recordType, String startTime, String endTime);
   Future<int?> getTotalSteps(String startTime, String endTime);
+  Future<int?> getTotalActivitySession(String startTime, String endTime);
 }

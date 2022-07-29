@@ -25,6 +25,9 @@ class MockHealthConnectFlutterPlatform with MockPlatformInterfaceMixin implement
 
   @override
   Future<int?> getTotalSteps(String startTime, String endTime) => Future.value(0);
+
+  @override
+  Future<int?> getTotalActivitySession(String startTime, String endTime) => Future.value(0);
 }
 
 void main() {

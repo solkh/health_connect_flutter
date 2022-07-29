@@ -67,6 +67,18 @@ class HealthConnectManager(private val context: Context) {
         return total
     }
 
+    /** * getTotal [ActivitySession] between tow dates. */
+    suspend fun getTotalActivitySession(start: Instant, end: Instant): Long {
+        val request = AggregateRequest(
+            metrics = setOf(ActivitySession.ACTIVE_TIME_TOTAL),
+            timeRangeFilter = TimeRangeFilter.between(start, end)
+        )
+        val response = healthConnectClient.aggregate(request)
+        // The result may be null if no data is available to aggregate.
+        return response.getMetric(ActivitySession.ACTIVE_TIME_TOTAL)?.toMinutes() ?: 0
+
+    }
+
     /**
      * Reads records.
      */

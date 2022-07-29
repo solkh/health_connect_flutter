@@ -64,4 +64,13 @@ class MethodChannelHealthConnectFlutter extends HealthConnectFlutterPlatform {
     };
     return await methodChannel.invokeMethod<int>('getTotalSteps', arguments);
   }
+
+  @override
+  Future<int?> getTotalActivitySession(String startTime, String endTime) async {
+    Map<String, dynamic> arguments = {
+      "startTime": startTime,
+      "endTime": endTime,
+    };
+    return await methodChannel.invokeMethod<int>('getTotalActivitySession', arguments);
+  }
 }

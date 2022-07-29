@@ -77,4 +77,19 @@ class HealthConnectFlutter {
     }
     return 0;
   }
+
+  Future<int> getTotalActivitySession({String? startTime, String? endTime}) async {
+    try {
+      if (startTime == null) {
+        var now = DateTime.now();
+        startTime ??= DateTime(now.year, now.month, now.day).toIso8601String();
+      }
+      endTime ??= DateTime.now().toIso8601String();
+      int? result = await MethodChannelHealthConnectFlutter().getTotalActivitySession(startTime, endTime);
+      return result ?? 0;
+    } catch (err) {
+      debugPrint(err.toString());
+    }
+    return 0;
+  }
 }
