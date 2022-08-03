@@ -28,20 +28,17 @@ class PermissionHelper {
         for (type in recordTypes) {
             permissionList += Permission.createReadPermission(
                 when(type){
-                    RecordTypeEnum.WEIGHT.ordinal-> Weight::class
-                    RecordTypeEnum.ACTIVE_ENERGY_BURNED.ordinal-> ActiveEnergyBurned::class
-                    RecordTypeEnum.ACTIVE_CALORIES_BURNED.ordinal-> ActiveCaloriesBurned::class
-                    RecordTypeEnum.ACTIVITY_EVENT.ordinal-> ActivityEvent::class
-                    RecordTypeEnum.ACTIVITY_LAP.ordinal-> ActivityLap::class
-                    RecordTypeEnum.ACTIVITY_SESSION.ordinal-> ActivitySession::class
-                    RecordTypeEnum.BASAL_BODY_TEMPERATURE.ordinal-> BasalBodyTemperature::class
-                    RecordTypeEnum.BLOOD_GLUCOSE.ordinal-> BloodGlucose::class
-                    RecordTypeEnum.BLOOD_PRESSURE.ordinal-> BloodPressure::class
-                    RecordTypeEnum.BODY_FAT.ordinal-> BodyFat::class
-                    RecordTypeEnum.HEART_RATE.ordinal-> HeartRateSeries::class
-                    RecordTypeEnum.HEIGHT.ordinal-> Height::class
-                    RecordTypeEnum.STEPS.ordinal-> Steps::class
-                    RecordTypeEnum.HYDRATION.ordinal-> Hydration::class
+                    RecordTypeEnum.WEIGHT.ordinal-> WeightRecord::class
+                    RecordTypeEnum.ACTIVE_CALORIES_BURNED.ordinal-> ActiveCaloriesBurnedRecord::class
+                    RecordTypeEnum.ACTIVITY_SESSION.ordinal-> ExerciseSessionRecord::class
+                    RecordTypeEnum.BASAL_BODY_TEMPERATURE.ordinal-> BodyTemperatureRecord::class
+                    RecordTypeEnum.BLOOD_GLUCOSE.ordinal-> BloodGlucoseRecord::class
+                    RecordTypeEnum.BLOOD_PRESSURE.ordinal-> BloodPressureRecord::class
+                    RecordTypeEnum.BODY_FAT.ordinal-> BodyFatRecord::class
+                    RecordTypeEnum.HEART_RATE.ordinal-> HeartRateRecord::class
+                    RecordTypeEnum.HEIGHT.ordinal-> HeightRecord::class
+                    RecordTypeEnum.STEPS.ordinal-> StepsRecord::class
+                    RecordTypeEnum.HYDRATION.ordinal-> HydrationRecord::class
                     else -> throw Exception("ERROR Parsing permissionType")
                 }
             )
@@ -61,20 +58,17 @@ class PermissionHelper {
         for (type in recordTypes) {
             permissionList +=  Permission.createWritePermission(
                 when(type){
-                    RecordTypeEnum.WEIGHT.ordinal-> Weight::class
-                    RecordTypeEnum.ACTIVE_ENERGY_BURNED.ordinal-> ActiveEnergyBurned::class
-                    RecordTypeEnum.ACTIVE_CALORIES_BURNED.ordinal-> ActiveCaloriesBurned::class
-                    RecordTypeEnum.ACTIVITY_EVENT.ordinal-> ActivityEvent::class
-                    RecordTypeEnum.ACTIVITY_LAP.ordinal-> ActivityLap::class
-                    RecordTypeEnum.ACTIVITY_SESSION.ordinal-> ActivitySession::class
-                    RecordTypeEnum.BASAL_BODY_TEMPERATURE.ordinal-> BasalBodyTemperature::class
-                    RecordTypeEnum.BLOOD_GLUCOSE.ordinal-> BloodGlucose::class
-                    RecordTypeEnum.BLOOD_PRESSURE.ordinal-> BloodPressure::class
-                    RecordTypeEnum.BODY_FAT.ordinal-> BodyFat::class
-                    RecordTypeEnum.HEART_RATE.ordinal-> HeartRateSeries::class
-                    RecordTypeEnum.HEIGHT.ordinal-> Height::class
-                    RecordTypeEnum.STEPS.ordinal-> Steps::class
-                    RecordTypeEnum.HYDRATION.ordinal-> Hydration::class
+                    RecordTypeEnum.WEIGHT.ordinal-> WeightRecord::class
+                    RecordTypeEnum.ACTIVE_CALORIES_BURNED.ordinal-> ActiveCaloriesBurnedRecord::class
+                    RecordTypeEnum.ACTIVITY_SESSION.ordinal-> ExerciseSessionRecord::class
+                    RecordTypeEnum.BASAL_BODY_TEMPERATURE.ordinal-> BasalBodyTemperatureRecord::class
+                    RecordTypeEnum.BLOOD_GLUCOSE.ordinal-> BloodGlucoseRecord::class
+                    RecordTypeEnum.BLOOD_PRESSURE.ordinal-> BloodPressureRecord::class
+                    RecordTypeEnum.BODY_FAT.ordinal-> BodyFatRecord::class
+                    RecordTypeEnum.HEART_RATE.ordinal-> HeartRateRecord::class
+                    RecordTypeEnum.HEIGHT.ordinal-> HeightRecord::class
+                    RecordTypeEnum.STEPS.ordinal-> StepsRecord::class
+                    RecordTypeEnum.HYDRATION.ordinal-> HydrationRecord::class
                     else -> throw Exception("ERROR Parsing permissionType")
                 }
             )

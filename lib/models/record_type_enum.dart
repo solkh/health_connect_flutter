@@ -7,15 +7,6 @@ enum RecordTypeEnum {
   /// value :double, startTime,endTime
   ACTIVE_CALORIES_BURNED,
 
-  /// value :double, startTime,endTime
-  ACTIVE_ENERGY_BURNED,
-
-  /// value :String eventType , startTime, endTime
-  ACTIVITY_EVENT,
-
-  /// value :Double,startTime,endTime
-  ACTIVITY_LAP,
-
   /// value :String activityType ,startTime,endTime
   ACTIVITY_SESSION,
 

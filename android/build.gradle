@@ -2,7 +2,7 @@ group 'com.solgr.health_connect_flutter'
 version '1.0-SNAPSHOT'
 
 buildscript {
-    ext.kotlin_version = '1.6.21'
+    ext.kotlin_version = '1.7.10'
     repositories {
         google()
         mavenCentral()
@@ -49,9 +49,11 @@ android {
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 
-    implementation "androidx.core:core-ktx:1.7.0"
-    implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.4.1"
-    implementation 'androidx.appcompat:appcompat:1.4.1'
+    implementation "androidx.core:core-ktx:1.8.0"
+    implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.5.1"
+    implementation 'androidx.appcompat:appcompat:1.4.2'
 
-    implementation 'androidx.health:health-connect-client:1.0.0-alpha01'
+
+    implementation 'androidx.health:health-connect-client:1.0.0-alpha03'
+
 }

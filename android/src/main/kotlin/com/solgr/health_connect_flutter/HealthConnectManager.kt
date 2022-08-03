@@ -5,14 +5,14 @@ import android.os.Build
 import androidx.annotation.ChecksSdkIntAtLeast
 import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.PermissionController
-import androidx.health.connect.client.metadata.Metadata
-import androidx.health.connect.client.permission.HealthDataRequestPermissions
 import androidx.health.connect.client.permission.Permission
 import androidx.health.connect.client.records.*
 import androidx.health.connect.client.request.AggregateRequest
 import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.response.ReadRecordsResponse
 import androidx.health.connect.client.time.TimeRangeFilter
+import androidx.health.connect.client.records.metadata.Metadata
+import androidx.health.connect.client.units.*
 import com.solgr.health_connect_flutter.models.RecordModel
 import com.solgr.health_connect_flutter.models.RecordTypeEnum
 import com.solgr.health_connect_flutter.models.RecordUnitEnum
@@ -54,29 +54,28 @@ class HealthConnectManager(private val context: Context) {
 
     /** * getTotal [Steps] between tow dates. */
     suspend fun getTotalSteps(start: Instant, end: Instant): Long {
-        val request = AggregateRequest(
-            metrics = setOf(Steps.COUNT_TOTAL),
-            timeRangeFilter = TimeRangeFilter.between(start, end)
-        )
-        val response = healthConnectClient.aggregate(request)
-        // The result may be null if no data is available to aggregate.
-        var total = response.getMetric(Steps.COUNT_TOTAL)
-        if (total == null) {
-            total = 0;
-        }
-        return total
+        val response =
+            healthConnectClient.aggregate(
+                AggregateRequest(
+                    metrics = setOf(StepsRecord.COUNT_TOTAL),
+                    timeRangeFilter = TimeRangeFilter.between(start, end)
+                )
+            )
+        // The result may be null if no data is available in the time range.
+        return response[StepsRecord.COUNT_TOTAL] ?: 0
     }
 
     /** * getTotal [ActivitySession] between tow dates. */
     suspend fun getTotalActivitySession(start: Instant, end: Instant): Long {
-        val request = AggregateRequest(
-            metrics = setOf(ActivitySession.ACTIVE_TIME_TOTAL),
-            timeRangeFilter = TimeRangeFilter.between(start, end)
-        )
-        val response = healthConnectClient.aggregate(request)
-        // The result may be null if no data is available to aggregate.
-        return response.getMetric(ActivitySession.ACTIVE_TIME_TOTAL)?.toMinutes() ?: 0
-
+        val response =
+            healthConnectClient.aggregate(
+                AggregateRequest(
+                    metrics = setOf(ExerciseSessionRecord.ACTIVE_TIME_TOTAL),
+                    timeRangeFilter = TimeRangeFilter.between(start, end)
+                )
+            )
+        // The result may be null if no data is available in the time range.
+        return response[ExerciseSessionRecord.ACTIVE_TIME_TOTAL]?.toMinutes() ?: 0
     }
 
     /**
@@ -89,10 +88,7 @@ class HealthConnectManager(private val context: Context) {
     ): List<RecordModel> {
         return when (recordType) {
             RecordTypeEnum.WEIGHT -> return readWeight(startTime, endTime)
-            RecordTypeEnum.ACTIVE_ENERGY_BURNED -> return readActiveEnergyBurned(startTime, endTime)
             RecordTypeEnum.ACTIVE_CALORIES_BURNED -> return readActiveCaloriesBurnedInputs(startTime, endTime)
-            RecordTypeEnum.ACTIVITY_EVENT -> return readActivityEvent(startTime, endTime)
-            RecordTypeEnum.ACTIVITY_LAP -> return readActivityLap(startTime, endTime)
             RecordTypeEnum.ACTIVITY_SESSION -> return readActivitySession(startTime, endTime)
             RecordTypeEnum.BASAL_BODY_TEMPERATURE -> return readBasalBodyTemperature(startTime, endTime)
             RecordTypeEnum.BLOOD_GLUCOSE -> return readBloodGlucose(startTime, endTime)
@@ -113,13 +109,13 @@ class HealthConnectManager(private val context: Context) {
     /** * Reads in existing [Hydration] records. */
     private suspend fun readHydration(start: Instant, end: Instant): List<RecordModel> {
         val request = ReadRecordsRequest(
-            recordType = Hydration::class,
+            recordType = HydrationRecord::class,
             timeRangeFilter = TimeRangeFilter.between(start, end)
         )
         val response = healthConnectClient.readRecords(request)
         return response.records.map { record ->
             RecordModel(
-                record.volumeLiters.toString(),
+                record.volume.toString(),
                 record.startTime,
                 record.endTime,
                 RecordUnitEnum.LITER,
@@ -132,7 +128,7 @@ class HealthConnectManager(private val context: Context) {
     /** * Reads in existing [Steps] records. */
     private suspend fun readSteps(start: Instant, end: Instant): List<RecordModel> {
         val request = ReadRecordsRequest(
-                recordType = Steps::class,
+                recordType = StepsRecord::class,
             timeRangeFilter = TimeRangeFilter.between(start, end)
         )
         val response = healthConnectClient.readRecords(request)
@@ -152,13 +148,13 @@ class HealthConnectManager(private val context: Context) {
     /** * Reads in existing [Height] records. */
     private suspend fun readHeight(start: Instant, end: Instant): List<RecordModel> {
         val request = ReadRecordsRequest(
-            recordType = Height::class,
+            recordType = HeightRecord::class,
             timeRangeFilter = TimeRangeFilter.between(start, end)
         )
         val response = healthConnectClient.readRecords(request)
         return response.records.map { record ->
             RecordModel(
-                record.heightMeters.toString(),
+                record.height.toString(),
                 record.time,
                 record.time,
                 RecordUnitEnum.METERS,
@@ -171,7 +167,7 @@ class HealthConnectManager(private val context: Context) {
     /** * Reads in existing [HeartRate] records. */
     private suspend fun readHeartRate(start: Instant, end: Instant): List<RecordModel> {
         val request = ReadRecordsRequest(
-            recordType = HeartRateSeries::class,
+            recordType = HeartRateRecord::class,
             timeRangeFilter = TimeRangeFilter.between(start, end)
         )
         val response = healthConnectClient.readRecords(request)
@@ -190,7 +186,7 @@ class HealthConnectManager(private val context: Context) {
     /** * Reads in existing [BodyFat] records. */
     private suspend fun readBodyFat(start: Instant, end: Instant): List<RecordModel> {
         val request = ReadRecordsRequest(
-            recordType = BodyFat::class,
+            recordType = BodyFatRecord::class,
             timeRangeFilter = TimeRangeFilter.between(start, end)
         )
         val response = healthConnectClient.readRecords(request)
@@ -210,13 +206,13 @@ class HealthConnectManager(private val context: Context) {
     /** * Reads in existing [BloodPressure] records. */
     private suspend fun readBloodPressure(start: Instant, end: Instant): List<RecordModel> {
         val request = ReadRecordsRequest(
-            recordType = BloodPressure::class,
+            recordType = BloodPressureRecord::class,
             timeRangeFilter = TimeRangeFilter.between(start, end)
         )
         val response = healthConnectClient.readRecords(request)
         return response.records.map { record ->
             RecordModel(
-                record.diastolicMillimetersOfMercury.toString(),
+                record.diastolic.inMillimetersOfMercury.toString(),
                 record.time,
                 record.time,
                 RecordUnitEnum.MILLIMETER_OF_MERCURY,
@@ -230,7 +226,7 @@ class HealthConnectManager(private val context: Context) {
     /** * Reads in existing [BloodGlucose] records. */
     private suspend fun readBloodGlucose(start: Instant, end: Instant): List<RecordModel> {
         val request = ReadRecordsRequest(
-            recordType = BloodGlucose::class,
+            recordType = BloodGlucoseRecord::class,
             timeRangeFilter = TimeRangeFilter.between(start, end)
         )
         val response = healthConnectClient.readRecords(request)
@@ -250,13 +246,13 @@ class HealthConnectManager(private val context: Context) {
     /** * Reads in existing [BasalBodyTemperature] records. */
     private suspend fun readBasalBodyTemperature(start: Instant, end: Instant): List<RecordModel> {
         val request = ReadRecordsRequest(
-            recordType = BasalBodyTemperature::class,
+            recordType = BasalBodyTemperatureRecord::class,
             timeRangeFilter = TimeRangeFilter.between(start, end)
         )
         val response = healthConnectClient.readRecords(request)
         return response.records.map { record ->
             RecordModel(
-                record.temperatureDegreesCelsius.toString(),
+                record.temperature.inCelsius.toString(),
                 record.time,
                 record.time,
                 RecordUnitEnum.DEGREE_CELSIUS,
@@ -270,13 +266,13 @@ class HealthConnectManager(private val context: Context) {
     /** * Reads in existing [ActivitySession] records. */
     private suspend fun readActivitySession(start: Instant, end: Instant): List<RecordModel> {
         val request = ReadRecordsRequest(
-            recordType = ActivitySession::class,
+            recordType = ExerciseSessionRecord::class,
             timeRangeFilter = TimeRangeFilter.between(start, end)
         )
         val response = healthConnectClient.readRecords(request)
         return response.records.map { record ->
             RecordModel(
-                record.activityType,
+                record.exerciseType,
                 record.startTime,
                 record.endTime,
                 RecordUnitEnum.STRING_TYPE,
@@ -287,56 +283,16 @@ class HealthConnectManager(private val context: Context) {
         }
     }
 
-    /** * Reads in existing [ActivityLap] records. */
-    private suspend fun readActivityLap(start: Instant, end: Instant): List<RecordModel> {
-        val request = ReadRecordsRequest(
-            recordType = ActivityLap::class,
-            timeRangeFilter = TimeRangeFilter.between(start, end)
-        )
-        val response = healthConnectClient.readRecords(request)
-        return response.records.map { record ->
-            RecordModel(
-                record.lengthMeters.toString(),
-                record.startTime,
-                record.endTime,
-                RecordUnitEnum.METERS,
-                RecordTypeEnum.ACTIVITY_LAP,
-                record.metadata,
-            )
-
-        }
-    }
-
-    /** * Reads in existing [ActivityEvent] records. */
-    private suspend fun readActivityEvent(start: Instant, end: Instant): List<RecordModel> {
-        val request = ReadRecordsRequest(
-            recordType = ActivityEvent::class,
-            timeRangeFilter = TimeRangeFilter.between(start, end)
-        )
-        val response = healthConnectClient.readRecords(request)
-        return response.records.map { record ->
-            RecordModel(
-                record.eventType,
-                record.startTime,
-                record.endTime,
-                RecordUnitEnum.STRING_TYPE,
-                RecordTypeEnum.ACTIVITY_EVENT,
-                record.metadata,
-            )
-
-        }
-    }
-
     /** * Reads in existing [ActiveCaloriesBurned] records. */
     private suspend fun readActiveCaloriesBurnedInputs(start: Instant, end: Instant): List<RecordModel> {
         val request = ReadRecordsRequest(
-            recordType = ActiveCaloriesBurned::class,
+            recordType = ActiveCaloriesBurnedRecord::class,
             timeRangeFilter = TimeRangeFilter.between(start, end)
         )
         val response = healthConnectClient.readRecords(request)
         return response.records.map { record ->
             RecordModel(
-                record.energyKcal.toString(),
+                record.energy.inKilocalories.toString(),
                 record.startTime,
                 record.endTime,
                 RecordUnitEnum.CALORIES,
@@ -346,35 +302,16 @@ class HealthConnectManager(private val context: Context) {
         }
     }
 
-    /** * Reads in existing [ActiveEnergyBurned] records. */
-    private suspend fun readActiveEnergyBurned(start: Instant, end: Instant): List<RecordModel> {
-        val request = ReadRecordsRequest(
-            recordType = ActiveEnergyBurned::class,
-            timeRangeFilter = TimeRangeFilter.between(start, end)
-        )
-        val response = healthConnectClient.readRecords(request)
-        return response.records.map { record ->
-            RecordModel(
-                record.energyKcal.toString(),
-                record.startTime,
-                record.endTime,
-                RecordUnitEnum.CALORIES,
-                RecordTypeEnum.ACTIVE_ENERGY_BURNED,
-                record.metadata,
-            )
-        }
-    }
-
     /** * Reads in existing [Weight] records. */
     private suspend fun readWeight(start: Instant, end: Instant): List<RecordModel> {
         val request = ReadRecordsRequest(
-            recordType = Weight::class,
+            recordType = WeightRecord::class,
             timeRangeFilter = TimeRangeFilter.between(start, end)
         )
         val response = healthConnectClient.readRecords(request)
         return response.records.map { record ->
             RecordModel(
-                record.weightKg.toString(),
+                record.weight.inKilograms.toString(),
                 record.time,
                 record.time,
                 RecordUnitEnum.KILOGRAMS,
@@ -391,10 +328,7 @@ class HealthConnectManager(private val context: Context) {
     suspend fun writeRecords(value: String, recordType: RecordTypeEnum, startTime: Instant, endTime: Instant): Boolean {
         return when (recordType) {
             RecordTypeEnum.WEIGHT -> return writeWeightRecord(value, startTime)
-            RecordTypeEnum.ACTIVE_ENERGY_BURNED -> return writeActiveEnergyBurned(value, startTime, endTime)
             RecordTypeEnum.ACTIVE_CALORIES_BURNED -> return writeActiveCaloriesBurned(value, startTime, endTime)
-            RecordTypeEnum.ACTIVITY_EVENT -> return writeActivityEvent(value, startTime, endTime)
-            RecordTypeEnum.ACTIVITY_LAP -> return writeActivityLap(value, startTime, endTime)
             RecordTypeEnum.ACTIVITY_SESSION -> return writeActivitySession(value, startTime, endTime)
             RecordTypeEnum.BASAL_BODY_TEMPERATURE -> return writeBasalBodyTemperature(value, startTime, endTime)
             RecordTypeEnum.BLOOD_GLUCOSE -> return writeBloodGlucose(value, startTime, endTime)
@@ -411,13 +345,12 @@ class HealthConnectManager(private val context: Context) {
     private suspend fun writeHydration(value: String, startTime: Instant, endTime: Instant): Boolean {
         checkParseDoubleValue(value)
         val records = listOf(
-            Hydration(
-                value.toDouble(),
+            HydrationRecord(
+                Volume.liters(value.toDouble()) ,
                 startTime = startTime,
                 endTime = endTime.plusMillis(1),
                 startZoneOffset = null,
                 endZoneOffset = null,
-                metadata = Metadata(UUID.randomUUID().toString())
             )
         )
         return healthConnectClient.insertRecords(records).recordUidsList.isNotEmpty()
@@ -427,7 +360,7 @@ class HealthConnectManager(private val context: Context) {
     private suspend fun writeSteps(value: String, startTime: Instant, endTime: Instant): Boolean {
         checkParseDoubleValue(value)
         val records = listOf(
-            Steps(
+            StepsRecord(
                 value.toDouble().toLong(),
                 startTime = startTime,
                 endTime = endTime.plusMillis(1),
@@ -443,8 +376,8 @@ class HealthConnectManager(private val context: Context) {
     private suspend fun writeHeight(value: String, startTime: Instant, endTime: Instant): Boolean {
         checkParseDoubleValue(value)
         val records = listOf(
-            Height(
-                value.toDouble(),
+            HeightRecord(
+                height =Length.meters(value.toDouble())  ,
                 time = startTime,
                 zoneOffset = null,
                 metadata = Metadata(UUID.randomUUID().toString())
@@ -457,8 +390,8 @@ class HealthConnectManager(private val context: Context) {
     private suspend fun writeBodyFat(value: String, startTime: Instant, endTime: Instant): Boolean {
         checkParseDoubleValue(value)
         val records = listOf(
-            BodyFat(
-                value.toDouble().toInt(),
+            BodyFatRecord(
+                percentage =  Percentage(value.toDouble())   ,
                 time = startTime,
                 zoneOffset = null,
                 metadata = Metadata(UUID.randomUUID().toString())
@@ -471,9 +404,9 @@ class HealthConnectManager(private val context: Context) {
     private suspend fun writeBloodPressure(value: String, startTime: Instant, endTime: Instant): Boolean {
         checkParseDoubleValue(value)
         val records = listOf(
-            BloodPressure(
-                value.toDouble(),
-                value.toDouble(),// TODO:
+            BloodPressureRecord(
+                systolic = Pressure.millimetersOfMercury( value.toDouble()),
+                diastolic= Pressure.millimetersOfMercury( value.toDouble()),
                 null,// TODO:
                 null,// TODO:
                 time = startTime,
@@ -488,7 +421,7 @@ class HealthConnectManager(private val context: Context) {
     private suspend fun writeBloodGlucose(value: String, startTime: Instant, endTime: Instant): Boolean {
         checkParseDoubleValue(value)
         val records = listOf(
-            BloodGlucose(
+            BloodGlucoseRecord(
                 value.toDouble(),
                 null,// TODO:
                 null,// TODO:
@@ -505,8 +438,8 @@ class HealthConnectManager(private val context: Context) {
     private suspend fun writeBasalBodyTemperature(value: String, startTime: Instant, endTime: Instant): Boolean {
         checkParseDoubleValue(value)
         val records = listOf(
-            BasalBodyTemperature(
-                value.toDouble(),
+            BasalBodyTemperatureRecord(
+                Temperature.celsius(value.toDouble()) ,
                 measurementLocation = null,// TODO:
                 time = startTime,
                 zoneOffset = null,
@@ -520,39 +453,7 @@ class HealthConnectManager(private val context: Context) {
     private suspend fun writeActivitySession(value: String, startTime: Instant, endTime: Instant): Boolean {
         // TODO: activityType : https://developer.android.com/reference/kotlin/androidx/health/connect/client/records/ActivitySession.ActivityType#BACK_EXTENSION:kotlin.String
         val records = listOf(
-            ActivitySession(
-                value,
-                startTime = startTime,
-                endTime = endTime.plusMillis(1),
-                startZoneOffset = null,
-                endZoneOffset = null,
-                metadata = Metadata(UUID.randomUUID().toString())
-            )
-        )
-        return healthConnectClient.insertRecords(records).recordUidsList.isNotEmpty()
-    }
-
-    /** * Writes in [ActivityLap] records. */
-    private suspend fun writeActivityLap(value: String, startTime: Instant, endTime: Instant): Boolean {
-        checkParseDoubleValue(value)
-        val records = listOf(
-            ActivityLap(
-                value.toDouble(),
-                startTime = startTime,
-                endTime = endTime.plusMillis(1),
-                startZoneOffset = null,
-                endZoneOffset = null,
-                metadata = Metadata(UUID.randomUUID().toString())
-            )
-        )
-        return healthConnectClient.insertRecords(records).recordUidsList.isNotEmpty()
-    }
-
-    /** * Writes in [ActivityEvent] records. */
-    private suspend fun writeActivityEvent(value: String, startTime: Instant, endTime: Instant): Boolean {
-        // TODO: eventType: https://developer.android.com/reference/kotlin/androidx/health/connect/client/records/ActivityEvent.EventType
-        val records = listOf(
-            ActivityEvent(
+            ExerciseSessionRecord(
                 value,
                 startTime = startTime,
                 endTime = endTime.plusMillis(1),
@@ -568,25 +469,8 @@ class HealthConnectManager(private val context: Context) {
     private suspend fun writeActiveCaloriesBurned(value: String, startTime: Instant, endTime: Instant): Boolean {
         checkParseDoubleValue(value)
         val records = listOf(
-            ActiveCaloriesBurned(
-                value.toDouble(),
-                startTime = startTime,
-                endTime = endTime.plusMillis(1),
-                startZoneOffset = null,
-                endZoneOffset = null,
-                metadata = Metadata(UUID.randomUUID().toString())
-            )
-        )
-        return healthConnectClient.insertRecords(records).recordUidsList.isNotEmpty()
-    }
-
-    /** * Writes in [ActiveEnergyBurned] records. */
-    private suspend fun writeActiveEnergyBurned(value: String, startTime: Instant, endTime: Instant): Boolean {
-
-        checkParseDoubleValue(value)
-        val records = listOf(
-            ActiveEnergyBurned(
-                value.toDouble(),
+            ActiveCaloriesBurnedRecord(
+                Energy.calories(value.toDouble()) ,
                 startTime = startTime,
                 endTime = endTime.plusMillis(1),
                 startZoneOffset = null,
@@ -601,8 +485,8 @@ class HealthConnectManager(private val context: Context) {
     private suspend fun writeWeightRecord(value: String, startTime: Instant): Boolean {
         checkParseDoubleValue(value)
         val records = listOf(
-            Weight(
-                value.toDouble(),
+            WeightRecord(
+                Mass.kilograms(value.toDouble()) ,
                 time = startTime,
                 zoneOffset = null,
                 metadata = Metadata(UUID.randomUUID().toString())

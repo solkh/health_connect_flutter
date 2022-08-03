@@ -1,7 +1,7 @@
 package com.solgr.health_connect_flutter.models
 
 import java.time.Instant
-import androidx.health.connect.client.metadata.Metadata
+import androidx.health.connect.client.records.metadata.Metadata
 
 
 class RecordModel(
